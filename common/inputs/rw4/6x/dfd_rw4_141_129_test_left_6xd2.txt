@@ -1,0 +1,69 @@
+# Full data listing for the real world dataset
+# Data Directory: 
+Test_Data/rw4/, DfD/data/rw4/, Projects/rw_data/
+# Data: 
+#------------------------------------------------------
+k32/left/exp_10/image_141_10.00.png, k32/left/exp_10/image_129_10.00.png, k32/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k32/left/exp_20/image_141_20.00.png, k32/left/exp_20/image_129_20.00.png, k32/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k32/left/exp_30/image_141_30.00.png, k32/left/exp_30/image_129_30.00.png, k32/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k32/left/exp_40/image_141_40.00.png, k32/left/exp_40/image_129_40.00.png, k32/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k32/left/exp_50/image_141_50.00.png, k32/left/exp_50/image_129_50.00.png, k32/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k32/left/exp_60/image_141_60.00.png, k32/left/exp_60/image_129_60.00.png, k32/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k32/left/exp_70/image_141_70.00.png, k32/left/exp_70/image_129_70.00.png, k32/lidar/lidar_rng_left_00000_8bit_x6d2.png
+#------------------------------------------------------
+k33/left/exp_10/image_141_10.00.png, k33/left/exp_10/image_129_10.00.png, k33/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k33/left/exp_20/image_141_20.00.png, k33/left/exp_20/image_129_20.00.png, k33/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k33/left/exp_30/image_141_30.00.png, k33/left/exp_30/image_129_30.00.png, k33/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k33/left/exp_40/image_141_40.00.png, k33/left/exp_40/image_129_40.00.png, k33/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k33/left/exp_50/image_141_50.00.png, k33/left/exp_50/image_129_50.00.png, k33/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k33/left/exp_60/image_141_60.00.png, k33/left/exp_60/image_129_60.00.png, k33/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k33/left/exp_70/image_141_70.00.png, k33/left/exp_70/image_129_70.00.png, k33/lidar/lidar_rng_left_00000_8bit_x6d2.png
+#------------------------------------------------------
+k34/left/exp_10/image_141_10.00.png, k34/left/exp_10/image_129_10.00.png, k34/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k34/left/exp_20/image_141_20.00.png, k34/left/exp_20/image_129_20.00.png, k34/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k34/left/exp_30/image_141_30.00.png, k34/left/exp_30/image_129_30.00.png, k34/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k34/left/exp_40/image_141_40.00.png, k34/left/exp_40/image_129_40.00.png, k34/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k34/left/exp_50/image_141_50.00.png, k34/left/exp_50/image_129_50.00.png, k34/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k34/left/exp_60/image_141_60.00.png, k34/left/exp_60/image_129_60.00.png, k34/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k34/left/exp_70/image_141_70.00.png, k34/left/exp_70/image_129_70.00.png, k34/lidar/lidar_rng_left_00000_8bit_x6d2.png
+#------------------------------------------------------
+k35/left/exp_10/image_141_10.00.png, k35/left/exp_10/image_129_10.00.png, k35/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k35/left/exp_20/image_141_20.00.png, k35/left/exp_20/image_129_20.00.png, k35/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k35/left/exp_30/image_141_30.00.png, k35/left/exp_30/image_129_30.00.png, k35/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k35/left/exp_40/image_141_40.00.png, k35/left/exp_40/image_129_40.00.png, k35/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k35/left/exp_50/image_141_50.00.png, k35/left/exp_50/image_129_50.00.png, k35/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k35/left/exp_60/image_141_60.00.png, k35/left/exp_60/image_129_60.00.png, k35/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k35/left/exp_70/image_141_70.00.png, k35/left/exp_70/image_129_70.00.png, k35/lidar/lidar_rng_left_00000_8bit_x6d2.png
+#------------------------------------------------------
+k44/left/exp_10/image_141_10.00.png, k44/left/exp_10/image_129_10.00.png, k44/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k44/left/exp_20/image_141_20.00.png, k44/left/exp_20/image_129_20.00.png, k44/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k44/left/exp_30/image_141_30.00.png, k44/left/exp_30/image_129_30.00.png, k44/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k44/left/exp_40/image_141_40.00.png, k44/left/exp_40/image_129_40.00.png, k44/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k44/left/exp_50/image_141_50.00.png, k44/left/exp_50/image_129_50.00.png, k44/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k44/left/exp_60/image_141_60.00.png, k44/left/exp_60/image_129_60.00.png, k44/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k44/left/exp_70/image_141_70.00.png, k44/left/exp_70/image_129_70.00.png, k44/lidar/lidar_rng_left_00000_8bit_x6d2.png
+#------------------------------------------------------
+k45/left/exp_10/image_141_10.00.png, k45/left/exp_10/image_129_10.00.png, k45/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k45/left/exp_20/image_141_20.00.png, k45/left/exp_20/image_129_20.00.png, k45/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k45/left/exp_30/image_141_30.00.png, k45/left/exp_30/image_129_30.00.png, k45/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k45/left/exp_40/image_141_40.00.png, k45/left/exp_40/image_129_40.00.png, k45/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k45/left/exp_50/image_141_50.00.png, k45/left/exp_50/image_129_50.00.png, k45/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k45/left/exp_60/image_141_60.00.png, k45/left/exp_60/image_129_60.00.png, k45/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k45/left/exp_70/image_141_70.00.png, k45/left/exp_70/image_129_70.00.png, k45/lidar/lidar_rng_left_00000_8bit_x6d2.png
+#------------------------------------------------------
+k46/left/exp_10/image_141_10.00.png, k46/left/exp_10/image_129_10.00.png, k46/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k46/left/exp_20/image_141_20.00.png, k46/left/exp_20/image_129_20.00.png, k46/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k46/left/exp_30/image_141_30.00.png, k46/left/exp_30/image_129_30.00.png, k46/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k46/left/exp_40/image_141_40.00.png, k46/left/exp_40/image_129_40.00.png, k46/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k46/left/exp_50/image_141_50.00.png, k46/left/exp_50/image_129_50.00.png, k46/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k46/left/exp_60/image_141_60.00.png, k46/left/exp_60/image_129_60.00.png, k46/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k46/left/exp_70/image_141_70.00.png, k46/left/exp_70/image_129_70.00.png, k46/lidar/lidar_rng_left_00000_8bit_x6d2.png
+#------------------------------------------------------
+k47/left/exp_10/image_141_10.00.png, k47/left/exp_10/image_129_10.00.png, k47/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k47/left/exp_20/image_141_20.00.png, k47/left/exp_20/image_129_20.00.png, k47/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k47/left/exp_30/image_141_30.00.png, k47/left/exp_30/image_129_30.00.png, k47/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k47/left/exp_40/image_141_40.00.png, k47/left/exp_40/image_129_40.00.png, k47/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k47/left/exp_50/image_141_50.00.png, k47/left/exp_50/image_129_50.00.png, k47/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k47/left/exp_60/image_141_60.00.png, k47/left/exp_60/image_129_60.00.png, k47/lidar/lidar_rng_left_00000_8bit_x6d2.png
+k47/left/exp_70/image_141_70.00.png, k47/left/exp_70/image_129_70.00.png, k47/lidar/lidar_rng_left_00000_8bit_x6d2.png
+#------------------------------------------------------

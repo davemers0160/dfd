@@ -1,0 +1,15 @@
+# Scenario Name
+dfd_6x_v14a_141_129_32x32_
+# Stopping criteria
+60,400000
+# Training/Testing input files
+/dfd_dnn_rw/inputs/rw4/6x/dfd_rw4_141_129_train_left_6x.txt
+/dfd_dnn_rw/inputs/rw4/6x/dfd_rw4_141_129_test_left_6x.txt
+# Number of crops
+56
+# Crop sizes: [training], [evaluation]
+32,32, 624,624
+# Cropping scales/expansion factor
+1, 1
+# v14a
+256,128,128,128,128,256,256,256,256,512,512,512,256,256,256,128,128,128

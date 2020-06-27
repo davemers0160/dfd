@@ -1,0 +1,41 @@
+# data file for loading information into dlib based dnn projects
+# '#' are used for comments and will not be read in by the parser
+# Version 2.5
+# The file is organized in the following manner:
+# Version (std::string): version name for named saving of various files 
+# Stopping Criteria (uint64_t, uint64_t) [stop time (hrs), max one step] 
+# training_file (std::string): This file contains a list of images and labels used for training
+# test_file (std::string): This file contains a list of images and labels used for testing
+# crop_num (uint64_t): The number of crops to use when using a random cropper
+# crop_size (uint64_t, uint64_t): This is the height and width of the crop size
+#           For v7 and v8 (3x3, 3x3, 3x3 down, 4x4, 4x4, 4x4 up) - min 30,30 increments of 16
+#           For v9 (5x5, 5x5, 5x5 down, 6x6, 6x6, 6x6 up) - min 44,44 increments of 16
+# filter_num (uint64_t...): This is the number of filters per layer.  Should be a comma separated list, eg. 10,20,30
+#             if the list does not account for the entire network then the code only uses what is available
+#             and leaves the remaining filter number whatever the default value was.  The order of the filters
+#             goes from outer most to the inner most layer.
+#
+# Scenario Name
+v14a_debug_
+
+# Stopping criteria
+1.0, 400000
+
+# training parameters: initial_learning_rate, final_learnig_rate, scale_factor, steps_wo_progress
+0.0001, 0.0000001, 0.1, 3000
+
+# Training/Testing input files
+D:/Projects/dfd_common/inputs/mb/dfd_train_data_one2.txt
+D:/Projects/dfd_common/inputs/mb/dfd_test_data_one2.txt
+
+# Crop Info: Number of crops, train_crop_size (h,w)], eval_crop_size (h,w), scale (h,w)
+20, 32,32, 352,352, 1,1
+
+# average colors per channel
+# 98.7366, 98.7809
+110.9551, 98.1071, 69.9262, 111.0131, 98.1506, 69.9516 
+
+# v14
+#a 
+256, 128,128,128, 128, 256,256,256, 256, 512,512, 512, 256,256, 256, 128,128,128
+
