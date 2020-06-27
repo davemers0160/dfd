@@ -1,8 +1,7 @@
-
+# common
 Common support files for the various DfD projects.
 
 ## Repository Breakdown
-
 
 ### include
 This is where all of the C++ common header files are located
@@ -10,7 +9,7 @@ This is where all of the C++ common header files are located
 ### inputs
 This is where the input files are located for various data sets.  The Middlebury College dataset (mb) is taken from [here](https://vision.middlebury.edu/stereo/data/) and is synthetically blurred using the code in the [blur generation](https://github.com/davemers0160/blur_generation) repository.
 
-The Real World dataset (rw) is a custom dataset taken with a FLIR Chameleon3 camera and a Varioptic microfluidic lens.  The groubnd truth data was collected using an Ouster OS1-64 LIDAR.
+The Real World dataset (rw) is a custom dataset taken with a FLIR Chameleon3 camera and a Varioptic microfluidic lens.  The ground truth data was collected using an Ouster OS1-64 LIDAR.  The data is located [here](https://iu.box.com/s/vpo69zr8wun1rnmmnidlbfcxpdel6mrz).
 
 ### lens_data
 This folder contains the blur characterization of the microfluidic lens and camera.
