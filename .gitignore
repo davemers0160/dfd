@@ -233,14 +233,11 @@ pip-log.txt
 ## DfD Project specific ignore files/folders
 ###############################################################################
 results/
-nets/
 data/
 sample_data/
 gorgon_save/
-DfD_DNN/results/dfd_train_results_v3_U.txt
-DfD_Analysis/.vscode/c_cpp_properties.json
-DfD_Analysis/.vscode/launch.json
 
+dfd_dnn_trainer/nets/
 
 ###############################################################################
 ## No Compressed Files
