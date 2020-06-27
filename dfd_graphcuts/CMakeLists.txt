@@ -19,7 +19,7 @@
 
 cmake_minimum_required(VERSION 2.8.12)
 
-PROJECT(DFD_GC_Project)
+PROJECT(dfd_gc_project)
 
 set(exe_name "dfd_gc_ex")
 
@@ -30,30 +30,36 @@ if("${PLATFORM}" STREQUAL "")
     set(PLATFORM "NOT_SET")
     message("The PLATFORM Environment variable is not set on this system.  Setting it to:")
 endif()
-
 message("Platform: " ${PLATFORM})
+
+# find the root of the main project
+string(FIND ${PROJECT_SOURCE_DIR} "/" INDEX REVERSE)
+string(SUBSTRING ${PROJECT_SOURCE_DIR} 0 ${INDEX} PR_ROOT)
+
+# Build Options
+option(USE_AVX_INSTRUCTIONS  "Compile your program with AVX instructions"  ON)
 
 if(WIN32)
     if(${PLATFORM} STREQUAL "Laptop")
         set(COMMON_ROOT "D:/Common")
-        set(DFD_COMMON_ROOT "D:/Projects/dfd_common")
+        #set(DFD_COMMON_ROOT "D:/Projects/dfd_common")
     elseif(${PLATFORM} STREQUAL "BEAST")
         set(COMMON_ROOT "D:/Projects/Common")
         set(DFD_COMMON_ROOT "D:/Projects/dfd_common")
     else()
         set(COMMON_ROOT "D:/Projects/Common")
-        set(DFD_COMMON_ROOT "D:/Projects/dfd_common")    
+        #set(DFD_COMMON_ROOT "D:/Projects/dfd_common")    
     endif()
 else()
     if(${PLATFORM} STREQUAL "MainGear")
         set(COMMON_ROOT "~/Projects/Common")
-        set(DFD_COMMON_ROOT "~/Projects/dfd_common")
+        #set(DFD_COMMON_ROOT "~/Projects/dfd_common")
     elseif(${PLATFORM} STREQUAL "HPC")
         set(COMMON_ROOT "~/Projects/Common")
-        set(DFD_COMMON_ROOT "~/Projects/dfd_common")
+        #set(DFD_COMMON_ROOT "~/Projects/dfd_common")
     else()
         set(COMMON_ROOT "~/Projects/Common")
-        set(DFD_COMMON_ROOT "~/Projects/dfd_common")   
+        #set(DFD_COMMON_ROOT "~/Projects/dfd_common")   
     endif()
         
 endif()
@@ -62,24 +68,22 @@ include(${COMMON_ROOT}/cmake_utils/use_cpp_11.cmake)
 include(${COMMON_ROOT}/cmake_utils/use_sse_avx.cmake)
 
 # look for any *.c and *.cpp files
-file(GLOB_RECURSE SOURCES "src/*.c*" "${COMMON_ROOT}/src/getopt.c")
+file(GLOB_RECURSE SOURCES "src/*.c*" 
+    "${COMMON_ROOT}/src/getopt.c"
+    )
 
 #set(dfd_includes "../common" "include" "src/gco-v3")
 set(project_includes "include" 
+    "${PR_ROOT}/common/include"
     "${COMMON_ROOT}/include" 
-    "${DFD_COMMON_ROOT}/include"
     )
 
 # find OpenCV
-if(${PLATFORM} STREQUAL "HPC")
-    message("HPC detected.  OpenCV will not be used.")
+find_package(OpenCV REQUIRED)
+if (OpenCV_FOUND)
+    set(project_includes ${project_includes} ${OpenCV_INCLUDE_DIRS})
 else()
-    find_package(OpenCV REQUIRED)
-    if (OpenCV_FOUND)
-        set(project_includes ${project_includes} ${OpenCV_INCLUDE_DIRS})
-    else()
-        message("OpenCV not found, so we won't build the project.")
-    endif()
+    message("OpenCV not found, so we won't build the project.")
 endif()
 
 message(" ")

@@ -15,36 +15,46 @@
 
 cmake_minimum_required(VERSION 2.8.12)
 
-PROJECT(DFD_DNN_Analysis_Project)
+PROJECT(dfd_dnn_analysis_project)
 set(exe_name "dfd_dnn_an")
 
 # This looks for an environment variable called PLATFORM.  This can be used to point
 # cmake to various locations based on the individual machines that the code is complied on
 set(PLATFORM "$ENV{PLATFORM}" CACHE INTERNAL "Copied from environment variable")
+if("${PLATFORM}" STREQUAL "")
+    set(PLATFORM "NOT_SET")
+    message("The PLATFORM Environment variable is not set on this system.  Setting it to:")
+endif()
 message("Platform: " ${PLATFORM})
 
+# find the root of the main project
+string(FIND ${PROJECT_SOURCE_DIR} "/" INDEX REVERSE)
+string(SUBSTRING ${PROJECT_SOURCE_DIR} 0 ${INDEX} PR_ROOT)
+
+# Build Options
+option(USE_AVX_INSTRUCTIONS  "Compile your program with AVX instructions"  ON)
 
 if(${PLATFORM} STREQUAL "Laptop")
     set(COMMON_ROOT "D:/Common")
     set(DLIB_CONTRIB "D:/Projects/dlib-contrib")
-    set(DFD_COMMON_ROOT "D:/Projects/dfd_common")	
+    #set(DFD_COMMON_ROOT "D:/Projects/dfd_common")	
     include(D:/dlib-19.19/dlib/cmake)
 elseif(${PLATFORM} STREQUAL "MainGear")
     set(_ECLIPSE_VERSION "3.8")
     set(COMMON_ROOT "~/Projects/Common")
-    set(DLIB_CONTRIB "~/Projects/dlib-contrib")
+    #set(DLIB_CONTRIB "~/Projects/dlib-contrib")
     set(DFD_COMMON_ROOT "~/Projects/dfd_common")
-    include(~/dlib-19.18/dlib/cmake)
+    include(~/dlib-19.19/dlib/cmake)
 elseif(${PLATFORM} STREQUAL "HPC")
     set(COMMON_ROOT "$HOME/Projects/Common")
     set(DLIB_CONTRIB "~/Projects/dlib-contrib")
-    set(DFD_COMMON_ROOT "~/Projects/dfd_common")
-    include(~/dlib/dlib/cmake)
+    #set(DFD_COMMON_ROOT "~/Projects/dfd_common")
+    include(~/dlib-19.19/dlib/cmake)
 else()
     set(COMMON_ROOT "D:/Common")
     set(DLIB_CONTRIB "D:/Projects/dlib-contrib")
-    set(DFD_COMMON_ROOT "D:/Projects/dfd_common")	
-    include(D:/dlib-19.17/dlib/cmake)
+    #set(DFD_COMMON_ROOT "D:/Projects/dfd_common")	
+    include(D:/dlib-19.19/dlib/cmake)
 endif()
 
 
@@ -52,26 +62,34 @@ endif()
 file(GLOB SOURCES "src/*.c*"	
     "${COMMON_ROOT}/src/*.cpp"
     "${DLIB_CONTRIB}/src/*.cpp"
+    "${PR_ROOT}/src/*.cpp"
     )            
             
-set(project_includes "include" "${COMMON_ROOT}/include" "${DLIB_CONTRIB}/include" "${DFD_COMMON_ROOT}/include")
+set(project_includes "include" 
+    "${PR_ROOT}/common/include"
+    "${COMMON_ROOT}/include" 
+    "${DLIB_CONTRIB}/include" 
+    )
           
 message(" ")
 message("--------------------------------------------------------")
-message("DfD DNN Analysis Project Source Files: ")
+message("Source Files: ")
 foreach(S ${SOURCES})
     message("  " ${S})
 endforeach()
 message("--------------------------------------------------------")
+
 message(" ")
 
 message("--------------------------------------------------------")
-message("DfD DNN Analysis Project Includes: ")
+message("Project Includes: ")
 foreach(S ${project_includes})
     message("  " ${S})
 endforeach()
 message("--------------------------------------------------------")
 message(" ")
+
+message("Cuda version: " ${CUDA_VERSION})
 
 include_directories(${project_includes})
 add_executable(${exe_name} ${SOURCES})
