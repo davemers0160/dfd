@@ -36,7 +36,7 @@ var g_StackScriptFolderPath = app.path + "/"+ localize("$$$/ScriptingSupport/Ins
 										+ localize("$$$/private/LoadStack/StackScriptOnly=Stack Scripts Only/");
 
 // this is the root location where the support scripts are
-var support_scripts_root = "D:/IUPUI/DFD/";
+var support_scripts_root = "D:/Projects/dfd/";
 
 // load this file in to get the images
 $.evalFile(support_scripts_root + "common/scripts/data_listing.jsx");
