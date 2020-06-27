@@ -84,7 +84,7 @@ dfd_gc_ex -f ../inputs/dfd_mb_sm_all.txt -o ../results/
 
 ## References
 
-When using this work please cite the follokwing:
+When using this work please cite the following:
 
 [3-D SCENE RECONSTRUCTION FOR PASSIVE RANGING USING DEPTH FROM DEFOCUS AND DEEP LEARNING](https://hammer.figshare.com/articles/3-D_SCENE_RECONSTRUCTION_FOR_PASSIVE_RANGING_USING_DEPTH_FROM_DEFOCUS_AND_DEEP_LEARNING/8938376/1)
 
