@@ -92,7 +92,7 @@ int main(int argc, char** argv)
     std::string parseFilename;
     std::string results_name;
     std::string data_directory;
-    std::string data_home;
+    //std::string data_home;
 
     std::vector<std::vector<std::string>> test_file;
     std::vector<std::pair<std::string, std::string>> image_files;
@@ -151,7 +151,7 @@ int main(int argc, char** argv)
     else
     {
         // Ubuntu
-        program_root = "/home/owner/DfD/dfd_rw_analysis/";
+        program_root = get_ubuntu_path();
     }
 
 #endif
@@ -165,7 +165,7 @@ int main(int argc, char** argv)
         ///////////////////////////////////////////////////////////////////////////////
         // Step 1: Read in the training images
         ///////////////////////////////////////////////////////////////////////////////
-        data_home = path_check(get_env_variable("DATA_HOME"));
+        //data_home = path_check(get_env_variable("DATA_HOME"));
 
         parseFilename = argv[1];
         

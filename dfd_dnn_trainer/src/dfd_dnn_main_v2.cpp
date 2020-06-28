@@ -235,7 +235,7 @@ int main(int argc, char** argv)
     else
     {
         // Ubuntu
-        program_root = "/home/owner/Projects/dfd_dnn/";
+        program_root = get_ubuntu_path();
     }
     
     sync_save_location = program_root + "nets/";

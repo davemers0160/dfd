@@ -81,6 +81,7 @@ To run this code from the command line in Windows using the sample input text fi
 ```
 dfd_gc_ex -f ../inputs/dfd_mb_sm_all.txt -o ../results/
 ```
+It is important to note that if the output folder specified in the input file does not exist the program will run, but there may not be any indication that the data is not being saved.
 
 ## References
 

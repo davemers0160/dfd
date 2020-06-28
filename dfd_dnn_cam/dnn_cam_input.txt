@@ -1,0 +1,12 @@
+# Camera-DNN configuration file
+# 
+# Parameters should be supplied in the following order:
+# Line 1: comma separated values of the lens driver voltage step (in-focus, out-of-focus)
+# Line 2: comma separated values for the x offset, y offset, width, height of the camera
+# Line 3: comma separated values for the camera properties: sharpness, fps, shutter speed (ms), gain
+# Line 4: net_file (std::string): This file contains the weights used in a given network architecture
+
+141, 129
+440, 312, 128, 128
+2300, 10, 20, 1.0
+../../common/nets/dfd_net_dfd_6x_v14a_141_129_v3_32x32_HPC.dat

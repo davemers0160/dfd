@@ -73,7 +73,7 @@ Windows: dfd_dnn ../../common/inputs/rw/dfd_6x_left_141_129_v3_input.txt
 Linux: ./dfd_dnn ../../common/inputs/rw/dfd_6x_left_141_129_v3_input.txt
 ```
 
-It is important to note that if the output folder specified in teh input file does not exist the program will run, but there may not be any indication that the data is not being saved.
+It is important to note that if the output folder specified in the input file does not exist the program will run, but there may not be any indication that the data is not being saved.
 
 ## References
 
