@@ -27,7 +27,15 @@ save_dir = img_path;
 commandwindow;
 
 % this defines the expected maximum blur radius
-max_blur_radius = 64;
+max_blur_radius = 150;
+
+sk = create_1D_gauss_kernel(5, 1.0);
+
+mf = [1 1 1];
+
+dx = [-0.5 0 0.5];
+
+fx = [1 -2 1];
 
 % this is a value toprovide a small buffer to exceed before being counted
 offset = 1/255;
@@ -38,32 +46,55 @@ for idx=1:numel(listing)
 
     % load in an image and get its size
     img_file = fullfile(listing(idx).folder, listing(idx).name);
-    img = double(imread(img_file));
+    img = double(rgb2gray(imread(img_file)));
     [img_h, img_w, img_c] = size(img);
 
-    % find the rough center points assuming that the knife edge is right to
-    % left and that the darker portion is on the left
-    img_cw = floor(img_w/2);    
+    % find the rough center points assuming that the knife edge is right to left
+    img_s = img(floor(img_h/2-5:img_h/2+5),:);
+    img_line = mean(img_s, 1);
+    img_cw = floor(img_w/2);
     width_range = max(0,img_cw-max_blur_radius):1:min(img_w,img_cw+max_blur_radius);
     
     % just use a single line to determine the blur amount
-    img_line = img(floor(img_h/2), width_range, 1);
-
+    %img_line = conv(img_line, sk, 'same');
+    img_line = img_line(width_range);
+    
     % find the areas where limits are met
-    low_limit = min(img_line(:));
-    high_limit = max(img_line(:));
+    low_limit = ceil(min(img_line(:))) + 1;
+    high_limit = floor(max(img_line(:))) - 1;
+    mid_limit = (high_limit + low_limit)/2;
+    
+    % find the point where the slope is changing
+    % we assume that there enough distance between the min and max along
+    % with noise
+    %index = find(
+    [~, mid_idx] = min(abs(img_line - mid_limit));
+    
+    
+    % get the laplacian to see where the inflection point is located
+    lap = conv(img_line, fx,'same');
+    lap = lap(2:end-1);
+    [min_lap, min_idx] = min(lap);
+    [max_lap, max_idx] = max(lap);
+    
+    dx1 = diff(img_line, 1);
+    dx2 = diff(img_line, 2);
+
     
     match = (img_line > (low_limit+offset)) == (img_line < (high_limit-offset));
+    %match = conv(match, mf, 'same');
+    match = bwareafilt(match,1);
+
     num = sum(match);
-    
     
     fprintf('%03d: %s, \t%02d\n', (idx-1), listing(idx).name, num);
 
-%     figure(1)
-%     plot(img_line, 'b');
-%     hold on;
-%     plot(match*max(img_line(:)), 'r');
-%     hold off;
+    figure(1)
+    plot(img_line, 'b');
+    hold on;
+    plot(match*max(img_line(:)), 'r');
+    %plot(img_line2, 'g');
+    hold off;
 
 end
 
