@@ -308,13 +308,13 @@ int main(int argc, char** argv)
         for (idx = 0; idx < te.size(); ++idx)
         {
             // add noise
-            apply_poisson_noise(te[idx], 2.0, rnd, 0.0, 255.0);
+            //apply_poisson_noise(te[idx], 2.0, rnd, 0.0, 255.0);
 
             // change lighting intensity
-            for (jdx = 0; jdx < te[idx].size(); ++jdx)
-            {
-                te[idx][jdx] = dlib::matrix_cast<uint16_t>(dlib::matrix_cast<double>(te[idx][jdx]) * 0.95);
-            }
+            //for (jdx = 0; jdx < te[idx].size(); ++jdx)
+            //{
+            //    te[idx][jdx] = dlib::matrix_cast<uint16_t>(dlib::matrix_cast<double>(te[idx][jdx]) * 0.95);
+            //}
 
             // time and analyze the results
             start_time = chrono::system_clock::now(); 

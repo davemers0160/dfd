@@ -4,19 +4,24 @@
 
 # Line 1: data_file (std::string): This file contains a list of images and labels used for testing
 #D:/Projects/dfd_common/inputs/mb/dfd_test_data_sm2.txt
-D:/IUPUI/Test_Data/tb22c_test/input_file.txt
+#D:/IUPUI/Test_Data/tb22a2_test/input_file.txt
+D:/Projects/playground/results/tb22a_wood/input_file.txt
 
 # Line 2: net_file (std::string): This file contains the weights used in a given network architecture
-D:/Projects/dfd_dnn_analysis/nets/4228960_4/nets/dfd_net_v14a_tb22c_41_full_p2_HPC.dat
+#D:/Projects/dfd_dnn_analysis/nets/4228960_4/nets/dfd_net_v14a_tb22c_41_full_p2_HPC.dat
+#D:/Projects/dfd/dfd_dnn_analysis/nets/4203984_2/nets/dfd_net_v14a_tb21a_21_full_p2_HPC.dat
+D:/Projects/dfd/dfd_dnn_analysis/nets/4210353_0/nets/dfd_net_v14a_tb22a_21_full_p2_HPC.dat
+#D:/Projects/dfd/dfd_dnn_analysis/nets/dfd_net_v14a_tb22a_21_full_p2_HPC.dat
 
 # Line 3: results_name (std::string): This is a string to append to the log files and images
-v14a_tb22c_
+v14a_tb22a4
 
 # Line 4: results_location (std::string): directory where the results should be saved
-D:/Projects/dfd_dnn_analysis/results/tb22c_test
+D:/Projects/dfd/dfd_dnn_analysis/results/tb22a_wood
 
 # Line 5: evaluation crop_size (uint64_t,uint64_t): H, W of the groundtruth image to evaluate against.  The input image is scaled accordingly
-384,384
+#384,384
+480,480
 
 # Line 6: evaluation crop scale size
 1,1
