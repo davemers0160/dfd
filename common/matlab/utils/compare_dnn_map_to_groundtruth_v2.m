@@ -13,7 +13,7 @@ plot_num = 1;
 file_filter = {'*.txt','Text Files';'*.*','All Files' };
 startpath = 'D:\Projects\';
 
-[gt_input_file, gt_input_path] = uigetfile(file_filter, 'Select Input File', startpath);
+[gt_input_file, gt_input_path] = uigetfile(file_filter, 'Select Train/Test Input File', startpath);
 if(gt_input_path == 0)
     return;
 end
@@ -92,6 +92,7 @@ ax = gca;
 ax.Position = [0.04 0.07 0.94 0.9];
 
 print(plot_num, '-dpng', fullfile(dm_input_path, 'depth_map_results_cm.png'));
+savefig(gcf, fullfile(dm_input_path, 'depth_map_results_cm.fig'), 'compact');
 
 plot_num = plot_num + 1;
 
@@ -122,6 +123,7 @@ ax = gca;
 ax.Position = [0.065 0.1 0.91 0.86];
 
 print(plot_num, '-dpng', fullfile(dm_input_path, 'depth_map_results_error.png'));
+savefig(gcf, fullfile(dm_input_path, 'depth_map_results_error.fig'), 'compact');
 
 plot_num = plot_num + 1;
 

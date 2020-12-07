@@ -44,7 +44,7 @@ color_palette = 'full';
 commandwindow;
 
 %% create the folders
-save_path = 'D:/IUPUI/Test_data/tb22d_test/';
+save_path = 'D:/IUPUI/Test_data/tb22a2_test/';
 
 warning('off');
 mkdir(save_path);
@@ -118,14 +118,14 @@ sigma = [0.0005,0.1725,0.3450,0.5175,0.6900,0.8625,1.0350,1.2075,1.3800,1.5525,1
 % br1 = [1,2,3,4,5,6,7,8,9,9,10,11,12,12,13,14,15,15,16,16,17,18,18,19,19,20,20,21,21,22,22,23,23,24,24,25,25,25,26,26,27];
 % br2 = [52,51,50,49,48,47,47,46,45,44,43,42,42,41,40,40,39,38,38,37,36,36,35,35,34,34,33,33,32,32,31,31,30,30,29,29,29,28,28,27,27];
 % tb20/21a/22a: 60-80
-% br1 = [1,2,3,4,5,6,7,8,9,9,10,11,12,12,13,14,15,15,16,16,17];
-% br2 = [17,16,15,14,13,12,12,11,10,9,8,8,7,6,5,5,4,3,3,2,1];
+br1 = [1,2,3,4,5,6,7,8,9,9,10,11,12,12,13,14,15,15,16,16,17];
+br2 = [17,16,15,14,13,12,12,11,10,9,8,8,7,6,5,5,4,3,3,2,1];
 % tb20/21b/22b: 80-100
 % br1 = [1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,9,10,10,11];
 % br2 = [11,10,9,9,8,8,7,7,6,6,5,5,4,4,3,3,3,2,2,1,1];
 % tb22c: 60-100 V
-br1 = [1,2,3,4,5,6,7,8,9,9,10,11,12,12,13,14,15,15,16,16,17,18,18,19,19,20,20,21,21,22,22,23,23,24,24,25,25,25,26,26,27];
-br2 = [26,25,24,23,22,21,21,20,19,18,17,16,16,15,14,14,13,12,12,11,10,10,9,9,8,8,7,7,6,6,5,5,4,4,3,3,2,2,2,1,1];
+% br1 = [1,2,3,4,5,6,7,8,9,9,10,11,12,12,13,14,15,15,16,16,17,18,18,19,19,20,20,21,21,22,22,23,23,24,24,25,25,25,26,26,27];
+% br2 = [26,25,24,23,22,21,21,20,19,18,17,16,16,15,14,14,13,12,12,11,10,10,9,9,8,8,7,7,6,6,5,5,4,4,3,3,2,2,2,1,1];
 
 % depth map values - arrange from lowest to highest with 0 being the lowest
 % depthmap_range = [0:1:49];
@@ -136,7 +136,7 @@ num_dm_values = numel(depthmap_range);
 %% create all of the image generation parameters
 
 % max number of depth map values for a single image
-DM_N = floor(numel(depthmap_range)/2);
+DM_N = 8;%floor(numel(depthmap_range)/2);
 
 % initial number of objects at the first depthmap value
 num_objects = 40;          
@@ -195,6 +195,9 @@ for kdx=0:(num_images-1)
     % create an image as a background instead of a solid color
     if(strcmp(color_palette, 'full'))
         img1 = gen_rand_image_all(img_h, img_w, 450, shape_lims_l);
+%         tmp = cat(1, [zeros(20,20,3), ones(20,20,3)],[ones(20,20,3), zeros(20,20,3)]);
+%         img1 = repmat(tmp, 11,11);
+%         img1 = img1(1:img_h, 1:img_w,:);
     else
         seed = int32(double(intmin('int32')) + double(intmax('uint32'))*rand(1));
         calllib(lib_name, 'init', seed);
@@ -238,8 +241,8 @@ for kdx=0:(num_images-1)
 %         max_N = ceil(exp((4.0*(num_objects-idx))/num_objects));
 %         min_N = ceil(num_objects*(exp((4.0*((D(idx)-max_depthmap)))/max_depthmap)));
 %         max_N = ceil(num_objects*(exp((1.0*((D(idx)-max_depthmap)))/max_depthmap)));
-        %min_N = ceil( ((num_objects)/(1+exp(-0.2*D(idx)+(0.1*num_objects))) ) + 3);
-        min_N = ceil( ((max_depthmap)/(1+exp(-0.2*D(idx)+(0.1*max_depthmap))) ) + 3);
+        min_N = ceil( ((num_objects)/(1+exp(-0.2*D(idx)+(0.1*num_objects))) ) + 3);
+        %min_N = ceil( ((max_depthmap)/(1+exp(-0.2*D(idx)+(0.1*max_depthmap))) ) + 3);
         max_N = ceil(1.25*min_N);
         
         N = randi([min_N, max_N], 1);
@@ -260,6 +263,7 @@ for kdx=0:(num_images-1)
             if(strcmp(color_palette, 'full'))
                 % the number of shapes in an image block
                 S = randi([25,45], 1);
+                %S = 0;
                 block = gen_rand_image_all(blk_h, blk_w, S, shape_lims);
             else
                 block = zeros(blk_h, blk_w, 3);            
