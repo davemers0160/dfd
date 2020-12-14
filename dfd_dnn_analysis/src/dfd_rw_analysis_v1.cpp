@@ -57,7 +57,7 @@ extern const uint32_t img_depth;
 extern const uint32_t secondary;
 std::string platform;
 
-std::string logfileName = "dfd_net_rw_analysis_results_";
+std::string logfileName = "dfd_net_analysis_results_";
 
 // ----------------------------------------------------------------------------
 
@@ -207,6 +207,9 @@ int main(int argc, char** argv)
 #endif
 
         test_file.erase(test_file.begin());
+
+        // make sure that the save location is there and create if not
+        mkdir(output_save_location);
         
         std::cout << "data_directory:         " << data_directory << std::endl;
 
@@ -323,9 +326,7 @@ int main(int argc, char** argv)
 
             elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);
 
-            // get the maximum value for the depth map
-            //dlib::find_min_and_max(gt_test[idx], gt_min, gt_max);
-
+            // create a depthmap version in RGB 
             dlib::matrix<dlib::rgb_pixel> dm_img = mat_to_rgbjetmat(dlib::matrix_cast<float>(map)*dm_scale, 0.0, (float)gt_max);
             dlib::matrix<dlib::rgb_pixel> gt_img = mat_to_rgbjetmat(dlib::matrix_cast<float>(gt_test[idx])*dm_scale, 0.0, (float)gt_max);
 
@@ -337,7 +338,6 @@ int main(int argc, char** argv)
             win0.set_image(rgb_img);
             win0.set_title("Input Image");
 
-
             win1.clear_overlay();
             win1.set_image(gt_img);
             win1.set_title("Groundtruth Depthmap");
@@ -345,6 +345,7 @@ int main(int argc, char** argv)
             win2.clear_overlay();
             win2.set_image(dm_img);
             win2.set_title("DFD DNN Depthmap");
+
             //std::cin.ignore();
             dlib::sleep(500);
 #endif
