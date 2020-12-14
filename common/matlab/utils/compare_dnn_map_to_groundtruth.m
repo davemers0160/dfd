@@ -46,7 +46,7 @@ end
 %% load in the data
 
 % this is the maximum depthmap value possible
-max_depthmap_value = 40;
+max_depthmap_value = 20;
 
 % read in the dnn files first
 dnn_img = double(imread(fullfile(dnn_dm_path,dnn_dm_file)));
@@ -88,7 +88,7 @@ plot_step = 1;
 hist_bin_step = 1;
 hist_bins = min_bin:hist_bin_step:max_bin;
 
-x_lim = [0,max_depthmap_value+1];
+x_lim = [-1,max_depthmap_value+1];
 x = [min_bin:hist_bin_step:(max_bin-1)];
 
 y_m = ceil(log10(max(combined_hist(:))));
@@ -164,7 +164,7 @@ end
 %%
 %dm_rng = [55:1:58];   % Midd1 & Plastic overlap
 %dm_rng = [21, 22, 23, 24, 25, 36, 37, 38]; % Midd2 overlap
-dm_rng = [4:1:11];   % rw4 - k00, k04... overlap
+dm_rng = [0:1:20];   % rw4 - k00, k04... overlap
 %dm_rng = [154:1:159]; %rw4 - k47
 
 gt_mask = zeros(dnn_sz);

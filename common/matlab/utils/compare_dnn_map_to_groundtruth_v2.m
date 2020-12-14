@@ -104,6 +104,8 @@ x = 0:1:max_depthmap_value;
 figure(plot_num)
 set(gcf,'position',([100,100,1200,600]),'color','w')
 bar(x, (1-cm_correct)*100,'b')
+hold on
+plot([-1,max_depthmap_value+1], [5, 5], 'r'); 
 set(gca,'fontweight','bold','FontSize',13);
 grid on
 box on
