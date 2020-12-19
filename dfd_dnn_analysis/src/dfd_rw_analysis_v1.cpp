@@ -284,8 +284,10 @@ int main(int argc, char** argv)
 #ifndef DLIB_NO_GUI_SUPPORT
         dlib::image_window win0;
         dlib::image_window win1;
-        dlib::image_window win2;
+        //dlib::image_window win2;
 #endif
+        dlib::matrix<dlib::rgb_pixel> dm_montage, img_montage;
+        dlib::matrix<dlib::rgb_pixel> rgb_img1, rgb_img2;
 
         double nmae_accum = 0.0;
         double nrmse_accum = 0.0;
@@ -331,20 +333,27 @@ int main(int argc, char** argv)
             dlib::matrix<dlib::rgb_pixel> gt_img = mat_to_rgbjetmat(dlib::matrix_cast<float>(gt_test[idx])*dm_scale, 0.0, (float)gt_max);
 
 #ifndef DLIB_NO_GUI_SUPPORT
-            dlib::matrix<dlib::rgb_pixel> rgb_img;
-            merge_channels(te[idx], rgb_img, 0);
 
+            merge_channels(te[idx], rgb_img1, 0);
+            merge_channels(te[idx], rgb_img2, 3);
+
+            img_montage.set_size(rgb_img1.nr(), rgb_img1.nc() * 2);
+            dlib::set_subm(img_montage, 0, 0, rgb_img1.nr(), rgb_img1.nc()) = rgb_img1;
+            dlib::set_subm(img_montage, 0, rgb_img1.nc(), rgb_img1.nr(), rgb_img1.nc()) = rgb_img2;
             win0.clear_overlay();
-            win0.set_image(rgb_img);
-            win0.set_title("Input Image");
+            win0.set_image(img_montage);
+            win0.set_title("Focus 1 & Focus 2 Images");
 
+            dm_montage.set_size(gt_img.nr(), gt_img.nc() * 2);
+            dlib::set_subm(dm_montage, 0, 0, gt_img.nr(), gt_img.nc()) = gt_img;
+            dlib::set_subm(dm_montage, 0, gt_img.nc(), gt_img.nr(), gt_img.nc()) = dm_img;
             win1.clear_overlay();
-            win1.set_image(gt_img);
-            win1.set_title("Groundtruth Depthmap");
+            win1.set_image(dm_montage);
+            win1.set_title("Groundtruth & DFD DNN Depthmaps");
 
-            win2.clear_overlay();
-            win2.set_image(dm_img);
-            win2.set_title("DFD DNN Depthmap");
+            //win2.clear_overlay();
+            //win2.set_image(dm_img);
+            //win2.set_title("DFD DNN Depthmap");
 
             //std::cin.ignore();
             dlib::sleep(500);
@@ -456,8 +465,8 @@ int main(int argc, char** argv)
         if(!win1.is_closed())
             win1.close_window();
 
-        if(!win2.is_closed())
-            win2.close_window();
+        //if(!win2.is_closed())
+        //    win2.close_window();
 #endif
 
     }
