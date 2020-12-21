@@ -177,7 +177,7 @@ int main(int argc, char** argv)
 
     //////////////////////////////////////////////////////////////////////////////////
 
-    if (argc == 1)
+    if (argc < 2)
     {
         print_usage();
         std::cin.ignore();
@@ -186,8 +186,19 @@ int main(int argc, char** argv)
 
     std::string parseFilename = argv[1];
 
+    if (argc == 3)
+    {
+        std::vector<std::string> params;
+        parse_csv_line(std::string(argv[2]), params);
+        gpu.clear();
+        for (idx = 0; idx < params.size(); ++idx)
+        {
+            gpu.push_back(stoi(params[idx]));
+        }
+    }
+
     // parse through the supplied csv file
-    parse_dnn_data_file(parseFilename, version, gpu, stop_criteria, tp, train_inputfile, test_inputfile, ci, avg_color, filter_num);
+    parse_dnn_data_file(parseFilename, version, stop_criteria, tp, train_inputfile, test_inputfile, ci, avg_color, filter_num);
     training_duration = stop_criteria[0];
     max_one_step_count = (uint64_t)stop_criteria[1];
 

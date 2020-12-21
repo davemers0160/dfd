@@ -42,7 +42,6 @@ typedef struct crop_info {
 
 void parse_dnn_data_file(std::string parseFilename, 
     std::string &version, 
-    std::vector<int32_t> &gpu,
     std::vector<double> &stop_criteria, 
     training_params& tp,
     std::string &training_file,
@@ -84,25 +83,25 @@ void parse_dnn_data_file(std::string parseFilename,
                 break;
 
             // get the gpu(s) to target
-            case 1:
-                try {
-                    gpu.clear();
-                    for (uint64_t jdx = 0; jdx < params[idx].size(); ++jdx)
-                    {
-                        gpu.push_back(stoi(params[idx][jdx]));
-                    }
-                }
-                catch (std::exception &e)
-                {
-                    gpu.clear();
-                    gpu.push_back(0);
-                    std::cout << e.what() << std::endl;
-                    std::cout << "Error getting the GPU(s) to target.  Setting the targeted GPU to: 0" << std::endl;
-                }
-                break;
+            //case 1:
+            //    try {
+            //        gpu.clear();
+            //        for (uint64_t jdx = 0; jdx < params[idx].size(); ++jdx)
+            //        {
+            //            gpu.push_back(stoi(params[idx][jdx]));
+            //        }
+            //    }
+            //    catch (std::exception &e)
+            //    {
+            //        gpu.clear();
+            //        gpu.push_back(0);
+            //        std::cout << e.what() << std::endl;
+            //        std::cout << "Error getting the GPU(s) to target.  Setting the targeted GPU to: 0" << std::endl;
+            //    }
+            //    break;
 
             // get the stopping criteria
-            case 2:
+            case 1:
                 try {
                     stop_criteria.clear();
                     for (uint64_t jdx = 0; jdx<params[idx].size(); ++jdx)
@@ -120,7 +119,7 @@ void parse_dnn_data_file(std::string parseFilename,
                 break;
 
             // get the training parameters
-            case 3:
+            case 2:
                 try {
                     tp = training_params(stod(params[idx][0]), stod(params[idx][1]), stod(params[idx][2]), stol(params[idx][3]));
                 }
@@ -132,17 +131,17 @@ void parse_dnn_data_file(std::string parseFilename,
                 break;
 
             // get the training input file
-            case 4:
+            case 3:
                 training_file = params[idx][0];
                 break;
 
             // get the test input file
-            case 5:
+            case 4:
                 test_file = params[idx][0];
                 break;
 
             // get the crop info
-            case 6:
+            case 5:
                 try {
                     ci = crop_info(stol(params[idx][0]), 
                         std::make_pair(stol(params[idx][1]), stol(params[idx][2])), 
@@ -156,34 +155,8 @@ void parse_dnn_data_file(std::string parseFilename,
                 }
                 break;
 
-            //case 7:
-            //    try {
-            //        crop_sizes.push_back(std::make_pair(stol(params[idx][0]), stol(params[idx][1])));
-            //        crop_sizes.push_back(std::make_pair(stol(params[idx][2]), stol(params[idx][3])));
-            //    }
-            //    catch (std::exception &e) {
-            //        std::cout << e.what() << std::endl;
-            //        crop_sizes.push_back(std::make_pair(108, 36));
-            //        crop_sizes.push_back(std::make_pair(108, 36));
-            //        std::cout << "Setting Training Crop Size to " << crop_sizes[0].first << "x" << crop_sizes[0].second << std::endl;
-            //        std::cout << "Setting Evaluation Crop Size to " << crop_sizes[1].first << "x" << crop_sizes[1].second << std::endl;
-            //    }
-            //    break;
-
-            // 
-            //case 8:
-            //    try {
-            //        scale = std::make_pair(stol(params[idx][0]), stol(params[idx][1]));
-            //    }
-            //    catch (std::exception &e) {
-            //        std::cout << e.what() << std::endl;
-            //        scale = std::make_pair(6, 18);
-            //        std::cout << "Setting Scale to default: " << scale.first << " x " << scale.second << std::endl;
-            //    }
-            //    break;
-
             // get the average colors for the dataset
-            case 7:
+            case 6:
                 try {
                     for (int jdx = 0; jdx < img_depth; ++jdx)
                     {
@@ -198,7 +171,7 @@ void parse_dnn_data_file(std::string parseFilename,
                 break;
 
             // get the number of conv filters for each layer
-            case 8:
+            case 7:
                 try {
                     filter_num.clear();
                     for (int jdx = 0; jdx<params[idx].size(); ++jdx)

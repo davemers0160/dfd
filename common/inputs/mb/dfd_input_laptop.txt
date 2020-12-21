@@ -18,9 +18,6 @@
 # Scenario Name
 v14a_tb8_mit_
 
-# gpus - comma separated list
-0, 1
-
 # Stopping criteria
 0.1, 400000
 
