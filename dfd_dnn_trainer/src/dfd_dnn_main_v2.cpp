@@ -258,6 +258,10 @@ int main(int argc, char** argv)
     
     std::cout << "Reading Inputs... " << std::endl;
     std::cout << "Platform:             " << platform << std::endl;
+    std::cout << "GPU:                  { ";
+    for (idx = 0; idx < gpu.size(); ++idx)
+        std::cout << gpu[idx] << " ";
+    std::cout << "}" << std::endl;
     std::cout << "program_root:         " << program_root << std::endl;
     std::cout << "sync_save_location:   " << sync_save_location << std::endl;
     std::cout << "output_save_location: " << output_save_location << std::endl;
