@@ -239,6 +239,7 @@ gorgon_save/
 
 dfd_dnn_trainer/nets/
 dfd_dnn_analysis/nets/
+b11/
 
 ###############################################################################
 ## No Compressed Files
