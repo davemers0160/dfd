@@ -41,8 +41,9 @@ D1=df:step:limits(2)*1000;
 
 D = ((df*f*f)/(f_num*(df-f)))*(1./D1);
 
+range_step = 1;
 
-[S_range, CoC, CoC_max] = blurCalc(f_num, f, focus_dist, limits);
+[S_range, CoC, CoC_max] = blurCalc(f_num, f, focus_dist, limits, range_step);
 
 %%
 figure(plot_num)
