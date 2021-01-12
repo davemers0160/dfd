@@ -75,6 +75,15 @@ cm_diag = diag(cm);
 
 cm_correct = cm_diag./sum_cm;
 
+% threshold error
+t_err = 0.90;
+
+% objective error
+o_err = 0.95;
+
+cm_t = cm_correct < t_err;
+cm_o = cm_correct < o_err & cm_correct >= t_err;
+cm_a = (1-cm_t) & (1-cm_o);
 
 %% try some plotting
 
@@ -103,12 +112,16 @@ x = 0:1:max_depthmap_value;
 
 figure(plot_num)
 set(gcf,'position',([100,100,1200,600]),'color','w')
-bar(x, (1-cm_correct)*100,'b')
+b1 = bar(x(cm_a), (1-cm_correct(cm_a))*100,'g');
 hold on
-plot([-1,max_depthmap_value+1], [5, 5], 'r'); 
+b2 = bar(x(cm_o), (1-cm_correct(cm_o))*100);
+b3 = bar(x(cm_t), (1-cm_correct(cm_t))*100,'r');
+%plot([-1,max_depthmap_value+1], [5, 5], 'r'); 
 set(gca,'fontweight','bold','FontSize',13);
 grid on
 box on
+
+b2.FaceColor = [1.000    0.6500    0.0];
 
 % X-Axis
 xlim(x_lim);
@@ -120,6 +133,7 @@ xlabel(strcat('Depth Map Value'),'fontweight','bold')
 ylim([0 100]);
 yticks([0:10:100]);
 ylabel('Depth Map Error Percentage','fontweight','bold')
+legend({' error <= 5% ', ' 5% < error <= 10% ', ' error > 10% '}, 'Orientation', 'horizontal', 'location', 'northeast');
 
 ax = gca;
 ax.Position = [0.065 0.1 0.91 0.86];
