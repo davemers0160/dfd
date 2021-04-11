@@ -373,6 +373,14 @@ int main(int argc, char** argv)
         elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);
         std::cout << "Loaded " << te.size() << " test image sets in " << elapsed_time.count() / 60 << " minutes." << std::endl << std::endl;
                
+        // get the min and max depthmap values based on the training ground truth
+        // this assumes that only trainable depthmap values are in the data set
+        uint16_t min_val, max_val;
+        get_gt_min_max(gt_train, min_val, max_val);
+
+        if ((max_val - min_val + 1) > filter_num[0])
+            filter_num[0] = (max_val - min_val + 1);
+        
         ///////////////////////////////////////////////////////////////////////////////
         // Step 2: Setup the network
         ///////////////////////////////////////////////////////////////////////////////

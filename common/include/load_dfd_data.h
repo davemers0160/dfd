@@ -11,6 +11,7 @@
 #include <vector>
 #include <algorithm>
 #include <string>
+#include <limits>
 
 // Custom Includes
 #include "rgb2gray.h"
@@ -310,5 +311,29 @@ void load_dfd_data(
 
 }   // end of load_dfd_data
 
+// ----------------------------------------------------------------------------
+template<typename T>
+void get_gt_min_max(
+    std::vector<dlib::matrix<T>>& gt,
+    T &min_val,
+    T &max_val
+)
+{
+    uint32_t idx;
+
+    T mn, mx;
+    min_val = std::numeric_limits<T>::max();
+    max_val = std::numeric_limits<T>::min();
+
+    // cycle through each of the groundtruth labels to get the min and max values
+    for (idx = 0; idx < gt.size(); ++idx)
+    {
+        dlib::find_min_and_max(gt[idx], mn, mx);
+        
+        min_val = (mn < min_val) ? mn : min_val;
+        max_val = (mx > max_val) ? mx : max_val;
+    }
+
+}   // end of get_gt_min_max
 
 #endif  // LOAD_DFD_DATA_H
