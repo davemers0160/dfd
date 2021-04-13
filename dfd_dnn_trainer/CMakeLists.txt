@@ -51,10 +51,10 @@ elseif(${PLATFORM} STREQUAL "HPC")
     #set(DFD_COMMON_ROOT "~/Projects/dfd_common")
     include(~/dlib-19.21/dlib/cmake)
 else()
-    set(COMMON_ROOT "D:/Common")
+    set(COMMON_ROOT "D:/Projects/Common")
     set(DLIB_CONTRIB "D:/Projects/dlib-contrib")
     #set(DFD_COMMON_ROOT "D:/Projects/dfd_common")	
-    include(D:/dlib-19.19/dlib/cmake)
+    include(D:/dlib-19.21/dlib/cmake)
 endif()
 
 
