@@ -158,7 +158,7 @@ int main(int argc, char** argv)
     std::vector<uint32_t> filter_num;
     uint64_t max_one_step_count;
     uint32_t expansion_factor;
-    double std = 1.0;
+    double std = 2.0;
     std::vector<int32_t> gpu = { 0 };
     std::array<float, img_depth> avg_color;
 
@@ -471,12 +471,14 @@ int main(int argc, char** argv)
             {
                 cropper(ci.crop_num, tr, gt_train, tr_crop, gt_crop);
 
-                //@mem((gt_crop[0].data).data,UINT16,1,gt_crop[0].nc(), gt_crop[0].nr(),gt_crop[0].nc()*2)
-                //@mem((tr_crop[0][0].data).data,UINT16,1,tr_crop[0][0].nc(), tr_crop[0][0].nr(),tr_crop[0][0].nc()*2)
+                // @mem((gt_crop[0].data).data,UINT16,1,gt_crop[0].nc(), gt_crop[0].nr(),gt_crop[0].nc()*2)
+                // @mem((tr_crop[0][0].data).data,UINT16,1,tr_crop[0][0].nc(), tr_crop[0][0].nr(),tr_crop[0][0].nc()*2)
+                auto tr_ptr = tr_crop[0][0].begin();
 
                 // apply a random noise to the image
                 for (auto&& tc : tr_crop)
                 {
+                    // @mem((tc[0].data).data, UINT16, 1, tc[0].nc(), tc[0].nr(), tc[0].nc() * 2)
                     //apply_uniform_noise((uint8_t)0, (uint8_t)255, tc, rnd, std);
                     apply_poisson_noise(tc, std, rnd, 0.0, 255.0);
 
