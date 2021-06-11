@@ -292,7 +292,7 @@ int main(int argc, char** argv)
         // get the "DATA_HOME" environment variable <- location of the root data folder
         //data_home = path_check(get_env_variable("DATA_HOME"));
  
-        std::cout << "train input file: " << train_inputfile << std::endl;
+        std::cout << "Training input file:          " << train_inputfile << std::endl;
         // parse through the supplied training csv file
 #if defined(_WIN32) | defined(__WIN32__) | defined(__WIN32) | defined(_WIN64) | defined(__WIN64)
         parse_csv_file(train_inputfile, training_file);
@@ -313,17 +313,15 @@ int main(int argc, char** argv)
 
         // remove the first line which was the data directory
         training_file.erase(training_file.begin());
-        
-
 
         //std::cout << train_inputfile << std::endl;
+        std::cout << "Training data directory:      " << train_data_directory << std::endl;
         std::cout << "Training image sets to parse: " << training_file.size() << std::endl;
         
         DataLogStream << train_inputfile << std::endl;
         DataLogStream << "Training image sets to parse: " << training_file.size() << std::endl;
 
         std::cout << "Loading training images..." << std::endl;
-        std::cout << "training data_directory:       " << train_data_directory << std::endl;
         
         start_time = chrono::system_clock::now();
         load_dfd_data(training_file, train_data_directory, mod_params, tr, gt_train, tr_image_files);
@@ -335,7 +333,7 @@ int main(int argc, char** argv)
 
 //-----------------------------------------------------------------------------
         // load the test data
-        std::cout << "test input file: " << test_inputfile << std::endl;
+        std::cout << "Test input file:          " << test_inputfile << std::endl;
 #if defined(_WIN32) | defined(__WIN32__) | defined(__WIN32) | defined(_WIN64) | defined(__WIN64)
         parse_csv_file(test_inputfile, test_file);
         test_data_directory = data_home + test_file[0][0];
@@ -356,6 +354,7 @@ int main(int argc, char** argv)
         test_file.erase(test_file.begin());
 
         //std::cout << test_inputfile << std::endl;
+        std::cout << "Test data directory:      " << test_data_directory << std::endl;
         std::cout << "Test image sets to parse: " << test_file.size() << std::endl;
 
         DataLogStream << "------------------------------------------------------------------" << std::endl;
@@ -364,7 +363,6 @@ int main(int argc, char** argv)
         DataLogStream << "------------------------------------------------------------------" << std::endl;
 
         std::cout << "Loading test images..." << std::endl;
-        std::cout << "test data_directory:       " << test_data_directory << std::endl;
 
         start_time = chrono::system_clock::now();
         load_dfd_data(test_file, test_data_directory, mod_params, te, gt_test, te_image_files);
@@ -378,6 +376,8 @@ int main(int argc, char** argv)
         uint16_t min_val, max_val;
         get_gt_min_max(gt_train, min_val, max_val);
 
+        // do a check of the depthmap values to ensure that there are enough outputs in the  
+        // network to cover the data input range
         if ((max_val - min_val + 1) > filter_num[0])
             filter_num[0] = (max_val - min_val + 1);
         
