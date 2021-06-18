@@ -197,12 +197,12 @@ int main(int argc, char** argv)
         if (HPC == 1)
         {
             parse_csv_file(test_inputfile, test_file);
-            data_directory = data_home + test_file[0][2];
+            data_directory = test_file[0][2];
         }
         else
         {
             parse_csv_file(test_inputfile, test_file);
-            data_directory = data_home + test_file[0][1];
+            data_directory = test_file[0][1];
         }
 #endif
 
