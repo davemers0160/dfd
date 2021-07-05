@@ -161,6 +161,7 @@ int main(int argc, char** argv)
     double std = 2.0;
     std::vector<int32_t> gpu = { 0 };
     std::array<float, img_depth> avg_color;
+    uint16_t gt_max = 0;
 
     // these are the parameters to load in an image to make sure that it is the correct size
     // for the network.  The first number makes sure that the image is a modulus of the number
@@ -634,8 +635,10 @@ int main(int argc, char** argv)
         dlib::matrix<uint16_t> map;
         dlib::matrix<double, 1, 6> tmp_results;
 
-
+        gt_max = (uint16_t)((dlib::layer<1>(dfd_net).layer_details().num_filters() - 1));
+        
 #ifndef DLIB_NO_GUI_SUPPORT
+
 
         dlib::image_window win0;
         dlib::image_window win1;
@@ -663,11 +666,11 @@ int main(int argc, char** argv)
                 win0.set_title("Input Image");
             
                 win1.clear_overlay();
-                win1.set_image(mat_to_rgbjetmat(dlib::matrix_cast<float>(gt_train[idx]),0.0,255.0));
+                win1.set_image(mat_to_rgbjetmat(dlib::matrix_cast<float>(gt_train[idx]),0.0,(float)gt_max));
                 win1.set_title("Ground Truth");
 
                 win2.clear_overlay();
-                win2.set_image(mat_to_rgbjetmat(dlib::matrix_cast<float>(map),0.0,255.0));
+                win2.set_image(mat_to_rgbjetmat(dlib::matrix_cast<float>(map),0.0,(float)gt_max));
                 win2.set_title("DNN Map");
             }
             
@@ -726,11 +729,11 @@ int main(int argc, char** argv)
                 win0.set_title("Input Image");
 
                 win1.clear_overlay();
-                win1.set_image(mat_to_rgbjetmat(dlib::matrix_cast<float>(gt_test[idx]),0.0,255.0));
+                win1.set_image(mat_to_rgbjetmat(dlib::matrix_cast<float>(gt_test[idx]),0.0,(float)gt_max));
                 win1.set_title("Groundtruth Depthmap");
 
                 win2.clear_overlay();
-                win2.set_image(mat_to_rgbjetmat(dlib::matrix_cast<float>(map),0.0,255.0));
+                win2.set_image(mat_to_rgbjetmat(dlib::matrix_cast<float>(map),0.0,(float)gt_max));
                 win2.set_title("DFD DNN Depthmap");
             }
             
