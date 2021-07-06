@@ -234,13 +234,12 @@ int main(int argc, char** argv)
         data_log_stream << "Data Input File:      " << test_inputfile << std::endl;
         data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
 
+        std::cout << "Loading test images..." << std::endl;
         std::cout << "Test image sets to parse: " << test_file.size() << std::endl;
 
         data_log_stream << "Test image sets to parse: " << test_file.size() << std::endl;
         data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
-
-        std::cout << "Loading test images..." << std::endl;
-        
+      
         start_time = chrono::system_clock::now();
         load_dfd_data(test_file, data_directory, mod_params, te, gt_test, image_files);
         
@@ -310,6 +309,9 @@ int main(int argc, char** argv)
         // assume that the maximum depthmap value is the number of filters of the last layer - 1
         gt_max = (uint16_t)((dlib::layer<1>(dfd_net).layer_details().num_filters() - 1)*dm_scale);
 
+        dlib::matrix<double> cm = dlib::zeros_matrix<double>(gt_max+1, gt_max+1);
+
+
         for (idx = 0; idx < te.size(); ++idx)
         {
             // add noise
@@ -327,6 +329,14 @@ int main(int argc, char** argv)
             stop_time = chrono::system_clock::now();
 
             elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);
+
+            for (uint32_t r = 0; r < map.nr(); ++r)
+            {
+                for (uint32_t c = 0; c < map.nc(); ++c)
+                {
+                    cm(gt_test[idx](r,c), map(r,c)) += 1.0;
+                }
+            }
 
             // create a depthmap version in RGB 
             dlib::matrix<dlib::rgb_pixel> dm_img = mat_to_rgbjetmat(dlib::matrix_cast<float>(map)*dm_scale, 0.0, (float)gt_max);
@@ -356,7 +366,7 @@ int main(int argc, char** argv)
             //win2.set_title("DFD DNN Depthmap");
 
             //std::cin.ignore();
-            dlib::sleep(500);
+            dlib::sleep(100);
 #endif
 
             std::string dm_filename = output_save_location + "depthmap_image_" + results_name + num2str(idx, "_%05d") + ".png";
@@ -416,6 +426,17 @@ int main(int argc, char** argv)
 
         }
         
+        // calculate the errors for each of the depthmap values
+        dlib::matrix<double> cm_sum = dlib::sum_rows(cm);
+        dlib::matrix<double> cm_diag = dlib::diag(cm);
+        dlib::matrix<double> cm_error(1,gt_max + 1);
+
+        for (idx = 0; idx < gt_max + 1; ++idx)
+        {
+            cm_error(idx) = 1.0 - cm_diag(idx) / cm_sum(idx);
+        }
+
+
         std::cout << "------------------------------------------------------------------" << std::endl;
         std::cout << "Average Image Analysis Results:" << std::endl;
         std::cout << "Average NMAE:   " << nmae_accum / (double)te.size() << std::endl;
@@ -430,6 +451,9 @@ int main(int argc, char** argv)
         std::cout << "Average NMAE, NRMSE, SSIM, SILOG,  Var_GT, Var_DM: " << nmae_accum / (double)te.size() << ", " << nrmse_accum / (double)te.size() << ", " << ssim_accum / (double)te.size()
                   << ", " << silog_accum / (double)te.size() << ", " << var_gt_accum / (double)te.size() << ", " << var_dm_accum / (double)te.size() << std::endl;
         std::cout << std::endl;
+
+        std::cout << "------------------------------------------------------------------" << std::endl;
+        std::cout << dlib::csv << cm << std::endl;
 
         data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
         data_log_stream << "Average Image Analysis Results:" << std::endl;
