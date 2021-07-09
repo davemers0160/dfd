@@ -93,6 +93,7 @@ int main(int argc, char** argv)
     std::string results_name;
     std::string data_directory;
     //std::string data_home;
+    std::string image_num;
 
     std::vector<std::vector<std::string>> test_file;
     std::vector<std::pair<std::string, std::string>> image_files;
@@ -224,21 +225,20 @@ int main(int argc, char** argv)
 
         // Add the date and time to the start of the log file
         data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
-        data_log_stream << "Version: 2.5    Date: " << sdate << "    Time: " << stime << std::endl;
-        data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
+        data_log_stream << "Version: 2.6    Date: " << sdate << "    Time: " << stime << std::endl << std::endl;
 
+        data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
         data_log_stream << "Platform:             " << platform << std::endl;
         data_log_stream << "program_root:         " << program_root << std::endl;
         data_log_stream << "output_save_location: " << output_save_location << std::endl;
         data_log_stream << "data_directory:       " << data_directory << std::endl;
-        data_log_stream << "Data Input File:      " << test_inputfile << std::endl;
-        data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
+        data_log_stream << "Data Input File:      " << test_inputfile << std::endl << std::endl;
 
         std::cout << "Loading test images..." << std::endl;
         std::cout << "Test image sets to parse: " << test_file.size() << std::endl;
 
-        data_log_stream << "Test image sets to parse: " << test_file.size() << std::endl;
         data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
+        data_log_stream << "Test image sets to parse: " << test_file.size() << std::endl << std::endl;
       
         start_time = chrono::system_clock::now();
         load_dfd_data(test_file, data_directory, mod_params, te, gt_test, image_files);
@@ -249,14 +249,15 @@ int main(int argc, char** argv)
 
         std::cout << "Input Array Depth: " << img_depth << std::endl;
         std::cout << "Secondary data loading value: " << secondary << std::endl << std::endl;
+
+        data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
         data_log_stream << "Input Array Depth: " << img_depth << std::endl;
-        data_log_stream << "Secondary data loading value: " << secondary << std::endl;
-        data_log_stream << "#------------------------------------------------------------------------------" << std::endl << std::endl;
+        data_log_stream << "Secondary data loading value: " << secondary << std::endl << std::endl;
         
         // save the eval crop size
         std::cout << "Eval Crop Size: " << crop_size.first << "x" << crop_size.second << std::endl << std::endl;
-        data_log_stream << "Eval Crop Size: " << crop_size.first << "x" << crop_size.second << std::endl;
         data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
+        data_log_stream << "Eval Crop Size: " << crop_size.first << "x" << crop_size.second << std::endl << std::endl;
         
         ///////////////////////////////////////////////////////////////////////////////
         // Step 2: Load the network
@@ -270,6 +271,7 @@ int main(int argc, char** argv)
 
         std::cout << dfd_net << std::endl;
 
+        data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
         data_log_stream << "Net Name: " << net_name << std::endl;
         data_log_stream << dfd_net << std::endl;
         //data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
@@ -330,6 +332,7 @@ int main(int argc, char** argv)
 
             elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);
 
+            // fill in the confusion matrix for the range of depthmap values
             for (uint32_t r = 0; r < map.nr(); ++r)
             {
                 for (uint32_t c = 0; c < map.nc(); ++c)
@@ -341,6 +344,8 @@ int main(int argc, char** argv)
             // create a depthmap version in RGB 
             dlib::matrix<dlib::rgb_pixel> dm_img = mat_to_rgbjetmat(dlib::matrix_cast<float>(map)*dm_scale, 0.0, (float)gt_max);
             dlib::matrix<dlib::rgb_pixel> gt_img = mat_to_rgbjetmat(dlib::matrix_cast<float>(gt_test[idx])*dm_scale, 0.0, (float)gt_max);
+
+            image_num = num2str(idx, "%05d");
 
 #ifndef DLIB_NO_GUI_SUPPORT
 
@@ -359,7 +364,7 @@ int main(int argc, char** argv)
             dlib::set_subm(dm_montage, 0, gt_img.nc(), gt_img.nr(), gt_img.nc()) = dm_img;
             win1.clear_overlay();
             win1.set_image(dm_montage);
-            win1.set_title("Groundtruth & DFD DNN Depthmaps");
+            win1.set_title("Image " + image_num + ": Groundtruth & DFD Depthmaps");
 
             //win2.clear_overlay();
             //win2.set_image(dm_img);
@@ -369,9 +374,9 @@ int main(int argc, char** argv)
             dlib::sleep(100);
 #endif
 
-            std::string dm_filename = output_save_location + "depthmap_image_" + results_name + num2str(idx, "_%05d") + ".png";
-            std::string dm_jet_filename = output_save_location + "depthmap_jet_" + results_name + num2str(idx, "_%05d") + ".png";
-            std::string gt_filename = output_save_location + "gt_image_" + results_name + num2str(idx, "_%05d") + ".png";
+            std::string dm_filename = output_save_location + "depthmap_image_" + results_name + "_" + image_num + ".png";
+            std::string dm_jet_filename = output_save_location + "depthmap_jet_" + results_name + "_" + image_num + ".png";
+            std::string gt_filename = output_save_location + "gt_image_" + results_name + "_" + image_num + ".png";
 
             std::cout << "------------------------------------------------------------------" << std::endl;
             std::cout << "Depthmap generation completed in: " << elapsed_time.count() << " seconds." << std::endl;
@@ -379,12 +384,12 @@ int main(int argc, char** argv)
             std::cout << "Focus File:     " << image_files[idx].first << std::endl;
             std::cout << "Defocus File:   " << image_files[idx].second << std::endl;
             std::cout << "Depth Map File: " << dm_filename << std::endl;
-            std::cout << "NMAE   " << std::setw(5) << std::setfill('0') << idx << ": " << std::fixed << std::setprecision(5) << results(0, 0) << std::endl;
-            std::cout << "NRMSE  " << std::setw(5) << std::setfill('0') << idx << ": " << std::fixed << std::setprecision(5) << results(0, 1) << std::endl;
-            std::cout << "SSIM   " << std::setw(5) << std::setfill('0') << idx << ": " << std::fixed << std::setprecision(5) << results(0, 2) << std::endl;
-            std::cout << "SILOG  " << std::setw(5) << std::setfill('0') << idx << ": " << std::fixed << std::setprecision(5) << results(0, 3) << std::endl;           
-            std::cout << "Var_GT " << std::setw(5) << std::setfill('0') << idx << ": " << std::fixed << std::setprecision(5) << results(0, 4) << std::endl;
-            std::cout << "Var_DM " << std::setw(5) << std::setfill('0') << idx << ": " << std::fixed << std::setprecision(5) << results(0, 5) << std::endl;
+            std::cout << "NMAE   " << image_num << ": " << std::fixed << std::setprecision(5) << results(0, 0) << std::endl;
+            std::cout << "NRMSE  " << image_num << ": " << std::fixed << std::setprecision(5) << results(0, 1) << std::endl;
+            std::cout << "SSIM   " << image_num << ": " << std::fixed << std::setprecision(5) << results(0, 2) << std::endl;
+            std::cout << "SILOG  " << image_num << ": " << std::fixed << std::setprecision(5) << results(0, 3) << std::endl;
+            std::cout << "Var_GT " << image_num << ": " << std::fixed << std::setprecision(5) << results(0, 4) << std::endl;
+            std::cout << "Var_DM " << image_num << ": " << std::fixed << std::setprecision(5) << results(0, 5) << std::endl;
 
             data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
             data_log_stream << "Depthmap generation completed in: " << elapsed_time.count() << " seconds." << std::endl;
@@ -392,12 +397,12 @@ int main(int argc, char** argv)
             data_log_stream << "Focus File:     " << image_files[idx].first << std::endl;
             data_log_stream << "Defocus File:   " << image_files[idx].second << std::endl;
             data_log_stream << "Depth Map File: " << dm_filename << std::endl;
-            data_log_stream << "NMAE   " << std::setw(5) << std::setfill('0') << idx << ": " << std::fixed << std::setprecision(5) << results(0, 0) << std::endl;
-            data_log_stream << "NRMSE  " << std::setw(5) << std::setfill('0') << idx << ": " << std::fixed << std::setprecision(5) << results(0, 1) << std::endl;
-            data_log_stream << "SSIM   " << std::setw(5) << std::setfill('0') << idx << ": " << std::fixed << std::setprecision(5) << results(0, 2) << std::endl;
-            data_log_stream << "SILOG  " << std::setw(5) << std::setfill('0') << idx << ": " << std::fixed << std::setprecision(5) << results(0, 3) << std::endl;
-            data_log_stream << "Var_GT " << std::setw(5) << std::setfill('0') << idx << ": " << std::fixed << std::setprecision(5) << results(0, 4) << std::endl;
-            data_log_stream << "Var_DM " << std::setw(5) << std::setfill('0') << idx << ": " << std::fixed << std::setprecision(5) << results(0, 5) << std::endl;
+            data_log_stream << "NMAE   " << image_num << ": " << std::fixed << std::setprecision(5) << results(0, 0) << std::endl;
+            data_log_stream << "NRMSE  " << image_num << ": " << std::fixed << std::setprecision(5) << results(0, 1) << std::endl;
+            data_log_stream << "SSIM   " << image_num << ": " << std::fixed << std::setprecision(5) << results(0, 2) << std::endl;
+            data_log_stream << "SILOG  " << image_num << ": " << std::fixed << std::setprecision(5) << results(0, 3) << std::endl;
+            data_log_stream << "Var_GT " << image_num << ": " << std::fixed << std::setprecision(5) << results(0, 4) << std::endl;
+            data_log_stream << "Var_DM " << image_num << ": " << std::fixed << std::setprecision(5) << results(0, 5) << std::endl;
 
             dm_results_stream << dm_filename << std::endl;
 
@@ -423,19 +428,20 @@ int main(int argc, char** argv)
             //if(key.compare("q")==0)
             //    break;
 
-
         }
         
-        // calculate the errors for each of the depthmap values
-        dlib::matrix<double> cm_sum = dlib::sum_rows(cm);
+        // calculate the confusion matrix errors for each of the depthmap values
+        dlib::matrix<double> cm_sum = dlib::sum_cols(cm);
         dlib::matrix<double> cm_diag = dlib::diag(cm);
         dlib::matrix<double> cm_error(1,gt_max + 1);
 
         for (idx = 0; idx < gt_max + 1; ++idx)
         {
-            cm_error(idx) = 1.0 - cm_diag(idx) / cm_sum(idx);
+            if (cm_sum(idx) == 0)
+                cm_error(idx) = 0.0;
+            else
+                cm_error(idx) = 1.0 - cm_diag(idx) / cm_sum(idx);
         }
-
 
         std::cout << "------------------------------------------------------------------" << std::endl;
         std::cout << "Average Image Analysis Results:" << std::endl;
@@ -453,9 +459,12 @@ int main(int argc, char** argv)
         std::cout << std::endl;
 
         std::cout << "------------------------------------------------------------------" << std::endl;
-        std::cout << dlib::csv << cm << std::endl;
+        std::cout << std::fixed << std::setprecision(0) << dlib::csv << cm << std::endl;
 
-        data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
+        std::cout << "------------------------------------------------------------------" << std::endl;
+        std::cout << std::fixed << std::setprecision(6) << dlib::csv << cm_error << std::endl;
+
+        data_log_stream << std::endl << "#------------------------------------------------------------------------------" << std::endl;
         data_log_stream << "Average Image Analysis Results:" << std::endl;
         data_log_stream << "Average NMAE:   " << nmae_accum / (double)te.size() << std::endl;
         data_log_stream << "Average NRMSE:  " << nrmse_accum / (double)te.size() << std::endl;
@@ -465,15 +474,18 @@ int main(int argc, char** argv)
         data_log_stream << "Average Var_DM: " << var_dm_accum / (double)te.size() << std::endl;
 
         // just save everything for easy copying
-        data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
+        data_log_stream << std::endl << "#------------------------------------------------------------------------------" << std::endl;
         data_log_stream << "Average NMAE, NRMSE, SSIM, Var_GT, Var_DM: " << nmae_accum / (double)te.size() << ", " << nrmse_accum / (double)te.size() << ", " << ssim_accum / (double)te.size()
                       << ", " << silog_accum / (double)te.size() << ", " << var_gt_accum / (double)te.size() << ", " << var_dm_accum / (double)te.size() << std::endl;
         data_log_stream << std::endl;
 
+        data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
+        data_log_stream << "# Confussion Matrix:" << std::endl;
+        data_log_stream << std::fixed << std::setprecision(0) << dlib::csv << cm << std::endl;
 
-    //#if defined(_WIN32) | defined(__WIN32__) | defined(__WIN32) | defined(_WIN64) | defined(__WIN64)
-    //    Beep(500, 1000);
-    //#endif
+        data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
+        data_log_stream << "# Depthmap Error:" << std::endl;
+        data_log_stream << std::fixed << std::setprecision(6) << dlib::csv << cm_error << std::endl;
 
         std::cout << "End of Program.  Press Enter to close!" << std::endl;
         data_log_stream.close();
@@ -482,15 +494,11 @@ int main(int argc, char** argv)
         std::cin.ignore();
 
 #ifndef DLIB_NO_GUI_SUPPORT
-
         if(!win0.is_closed())
             win0.close_window();
 
         if(!win1.is_closed())
             win1.close_window();
-
-        //if(!win2.is_closed())
-        //    win2.close_window();
 #endif
 
     }
