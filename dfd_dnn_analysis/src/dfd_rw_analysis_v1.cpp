@@ -84,7 +84,8 @@ int main(int argc, char** argv)
 
     std::ofstream data_log_stream;
     std::ofstream dm_results_stream;
-    
+    std::ofstream cm_results_stream;
+
     //std::ofstream trainLogStream;
     //std::string train_inputfile;
     std::string test_inputfile;
@@ -219,7 +220,8 @@ int main(int argc, char** argv)
 
         std::cout << "Log File:               " << (output_save_location + logfileName) << std::endl;
         data_log_stream.open((output_save_location + logfileName), ios::out | ios::app);
-        dm_results_stream.open((output_save_location + "depth_map_result_images.txt"), ios::out);
+        dm_results_stream.open((output_save_location + results_name + "_depth_map_result_images.txt"), ios::out);
+        cm_results_stream.open((output_save_location + results_name + "_confusion_matrix_results.txt"), ios::out);
 
         std::cout << "Data Input File:        " << test_inputfile << std::endl << std::endl;
 
@@ -482,6 +484,7 @@ int main(int argc, char** argv)
         data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
         data_log_stream << "# Confussion Matrix:" << std::endl;
         data_log_stream << std::fixed << std::setprecision(0) << dlib::csv << cm << std::endl;
+        cm_results_stream << std::fixed << std::setprecision(0) << dlib::csv << cm << std::endl;
 
         data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
         data_log_stream << "# Depthmap Error:" << std::endl;
@@ -490,6 +493,7 @@ int main(int argc, char** argv)
         std::cout << "End of Program.  Press Enter to close!" << std::endl;
         data_log_stream.close();
         dm_results_stream.close();
+        cm_results_stream.close();
 
         std::cin.ignore();
 
