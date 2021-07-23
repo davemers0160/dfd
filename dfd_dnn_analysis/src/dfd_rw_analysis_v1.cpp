@@ -484,7 +484,7 @@ int main(int argc, char** argv)
         data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
         data_log_stream << "# Confussion Matrix:" << std::endl;
         data_log_stream << std::fixed << std::setprecision(0) << dlib::csv << cm << std::endl;
-        cm_results_stream << std::fixed << std::setprecision(0) << dlib::csv << cm << std::endl;
+        cm_results_stream << std::fixed << std::setprecision(0) << dlib::csv << cm;
 
         data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
         data_log_stream << "# Depthmap Error:" << std::endl;

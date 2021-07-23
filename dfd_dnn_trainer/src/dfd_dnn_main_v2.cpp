@@ -495,6 +495,7 @@ int main(int argc, char** argv)
                 }
 
                 trainer.train_one_step(tr_crop, gt_crop);
+
             }
             else
             {

@@ -16,7 +16,7 @@
 #             goes from outer most to the inner most layer.
 #
 # Scenario Name
-v14a_tb22d
+v14b_tb22d
 
 # Stopping criteria
 0.1, 400000
@@ -29,11 +29,11 @@ v14a_tb22d
 #D:/Projects/dfd_common/inputs/mb/dfd_test_data_one2.txt
 #D:/IUPUI/Test_Data/tb8_test/input_file.txt
 #D:/IUPUI/Test_Data/tb8_test/input_file.txt
-D:/Projects/playground/results/tb22d_train/input_file.txt
+D:/Projects/playground/results/tb22d_test/input_file.txt
 D:/Projects/playground/results/tb22d_test/input_file.txt
 
 # Crop Info: Number of crops, train_crop_size (h,w)], eval_crop_size (h,w), scale (h,w)
-20, 32,32, 384,384, 1,1
+10, 32,32, 384,384, 1,1
 
 # average colors per channel
 # 98.7366, 98.7809
