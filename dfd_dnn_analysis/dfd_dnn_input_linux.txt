@@ -1,0 +1,23 @@
+# data file for loading information into dlib based dnn projects
+# '#' are used for comments and will not be read in by the parser
+# The file is organized in the following manner:
+
+# Line 1: data_file (std::string): This file contains a list of images and labels used for testing
+/home/owner/data/dfd/tb23a_test/tb23a_input_file.txt
+
+# Line 2: net_file (std::string): This file contains the weights used in a given network architecture
+/home/owner/Projects/dfd/dfd_dnn_trainer/nets/dfd_net_v15a_tb23a_MainGear.dat
+
+# Line 3: results_name (std::string): This is a string to append to the log files and images
+tb23a_v15
+
+# Line 4: results_location (std::string): directory where the results should be saved
+/home/owner/Projects/dfd/dfd_dnn_analysis/results/tb23a_test
+
+# Line 5: evaluation crop_size (uint64_t,uint64_t): H, W of the groundtruth image to evaluate against.  The input image is scaled accordingly
+#384,384
+512,512
+
+# Line 6: evaluation crop scale size
+1,1
+
