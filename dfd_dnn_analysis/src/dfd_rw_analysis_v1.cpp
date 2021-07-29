@@ -33,7 +33,7 @@
 // Things must go in this order since the array size is determined
 // by the network header file
 //#include "dfd_net_v14.h"
-#include "dfd_net_v15.h"
+#include "dfd_net_v16.h"
 #include "dfd_dnn_analysis.h"
 #include "load_dfd_data.h"
 #include "eval_dfd_net_performance.h"

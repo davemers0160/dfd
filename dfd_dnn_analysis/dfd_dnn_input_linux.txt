@@ -6,10 +6,10 @@
 /home/owner/data/dfd/tb23a_test/tb23a_input_file.txt
 
 # Line 2: net_file (std::string): This file contains the weights used in a given network architecture
-/home/owner/Projects/dfd/dfd_dnn_trainer/nets/dfd_net_v15a_tb23a_MainGear.dat
+/home/owner/Projects/dfd/dfd_dnn_trainer/nets/dfd_net_v16a0_tb23a_MainGear.dat
 
 # Line 3: results_name (std::string): This is a string to append to the log files and images
-tb23a_v15
+tb23a_v16a0
 
 # Line 4: results_location (std::string): directory where the results should be saved
 /home/owner/Projects/dfd/dfd_dnn_analysis/results/tb23a_test
