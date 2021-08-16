@@ -48,7 +48,7 @@ max_x_spin = Spinner(title="Max Range", low=limits[0], high=limits[1], step=1, v
 min_y_spin = Spinner(title="Min Radius", low=limits[0], high=limits[1], step=1, value=0, width=spin_width)
 max_y_spin = Spinner(title="Max Radius", low=limits[0], high=limits[1], step=1, value=40, width=spin_width)
 div_spin = Spinner(title="Divisions", low=1, high=10000, step=1, value=10, width=spin_width)
-hide_diff_cb = CheckboxGroup(labels=["Show CoC Diff"], active=[], width=spin_width)
+# hide_diff_cb = CheckboxGroup(labels=["Show CoC Diff"], active=[], width=spin_width)
 hide_dups_cb = CheckboxGroup(labels=["Show Duplicates"], active=[], width=spin_width)
 
 #fp1_b = figure(plot_height=200, plot_width=200, title="Focal Point 1", toolbar_location=None)
@@ -95,7 +95,7 @@ coc_plot.add_tools(ht)
 # Custom JS code to update the plots
 cb_dict = dict(source=source, stem_source=stem_source, coc_plot=coc_plot, px_size=px_size, f_num=f_num, f=f, do_1=do_1,
                do_2=do_2, min_x_spin=min_x_spin, max_x_spin=max_x_spin, min_y_spin=min_y_spin, max_y_spin=max_y_spin,
-               div_spin=div_spin, limits=limits, step=step, hide_diff_cb=hide_diff_cb, hide_dups_cb=hide_dups_cb)
+               div_spin=div_spin, limits=limits, step=step, hide_dups_cb=hide_dups_cb)
 update_plot_callback = CustomJS(args=cb_dict, code="""
     var data = source.data;
     var stem_data = stem_source.data;
@@ -180,18 +180,18 @@ update_plot_callback = CustomJS(args=cb_dict, code="""
     
     data['x'].push(r);
     data['x'].push(r);
-    data['x'].push(r);
+    //data['x'].push(r);
     data['coc'].push(coc1);
     data['coc'].push(coc2);
     
-    if(hide_diff_cb.active.length == 1)
-    {
-        data['coc'].push(coc_diff);
-    }
-    else
-    {
-        data['coc'].push([]);    
-    }
+    //if(hide_diff_cb.active.length == 1)
+    //{
+    //    data['coc'].push(coc_diff);
+    //}
+    //else
+    //{
+    //    data['coc'].push([]);    
+    //}
     
     if(hide_dups_cb.active.length == 1)
     {
@@ -235,8 +235,9 @@ def update_plot(attr, old, new):
     q_coc_slice = q_coc_diff[0:-1:div_spin.value]
     diff_match = np.hstack(([False], (q_coc_slice[0:-1] == q_coc_slice[1:])))
 
-    source.data = dict(x=[r, r, r], coc=[q_coc1, q_coc2, q_coc_diff], color=['blue', 'green', 'black'], legend_label=["fp 1", "fp 2", "CoC Difference"]) #, "CoC Difference"
-    stem_source.data = dict(stem_x=r_slice[diff_match], stem_y0=np.zeros(r_slice[diff_match].shape[0]), stem_y1=np.full(r_slice[diff_match].shape[0], max_y_spin.value))
+    # source.data = dict(x=[r, r, r], coc=[q_coc1, q_coc2, q_coc_diff], color=['blue', 'green', 'black'], legend_label=["fp 1", "fp 2", "CoC Difference"]) #, "CoC Difference"
+    source.data = dict(x=[r, r], coc=[q_coc1, q_coc2], color=['blue', 'green'], legend_label=["fp 1", "fp 2"])
+    # stem_source.data = dict(stem_x=r_slice[diff_match], stem_y0=np.zeros(r_slice[diff_match].shape[0]), stem_y1=np.full(r_slice[diff_match].shape[0], max_y_spin.value))
     # source.data = dict(x=[r], coc1=[q_coc1], coc2=[q_coc2], coc_diff=[q_coc_diff])
     #b_source.data = dict(b1=[blur_alpha], b2=[blur_alpha])
 
@@ -252,7 +253,7 @@ for w in [px_size, f_num, f, do_1, do_2, min_x_spin, max_x_spin, min_y_spin, max
     # w.on_change('value', update_plot)
     w.js_on_change('value', update_plot_callback)
 
-for w in [hide_diff_cb, hide_dups_cb]:
+for w in [hide_dups_cb]:
     w.js_on_click(update_plot_callback)
 
 
@@ -262,7 +263,7 @@ update_plot(1, 1, 1)
 range_input = column(min_x_spin, max_x_spin)
 radius_input = column(min_y_spin, max_y_spin)
 
-inputs = column(px_size, f_num, f, range_input, radius_input, div_spin, hide_diff_cb, hide_dups_cb)
+inputs = column(px_size, f_num, f, range_input, radius_input, div_spin, Spacer(height=15), hide_dups_cb)
 layout = column(row(inputs, Spacer(width=20, height=20), coc_plot), do_1, do_2)
 
 show(layout)
