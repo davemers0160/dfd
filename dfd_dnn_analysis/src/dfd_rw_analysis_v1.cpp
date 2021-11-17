@@ -77,6 +77,34 @@ void print_usage(void)
     std::cout << endl;
 }
 
+inline void vect2matrix(
+    uint32_t img_h,
+    uint32_t img_w,
+    std::vector<uint8_t>& fp1_ptr,
+    std::vector<uint8_t>& fp2_ptr,
+    std::vector<uint8_t>& dm_ptr,
+    std::array<dlib::matrix<uint16_t>, img_depth> &t,
+    dlib::matrix<uint16_t> &gt
+    )
+{
+    int index = 0, dm_index = 0;
+    for (long r = 0; r < img_h; ++r)
+    {
+        for (long c = 0; c < img_w; ++c)
+        {
+
+            dlib::assign_pixel(t[2](r, c), (uint16_t)fp1_ptr[index]);
+            dlib::assign_pixel(t[5](r, c), (uint16_t)fp2_ptr[index++]);
+            dlib::assign_pixel(t[1](r, c), (uint16_t)fp1_ptr[index]);
+            dlib::assign_pixel(t[4](r, c), (uint16_t)fp2_ptr[index++]);
+            dlib::assign_pixel(t[0](r, c), (uint16_t)fp1_ptr[index]);
+            dlib::assign_pixel(t[3](r, c), (uint16_t)fp2_ptr[index++]);
+
+            dlib::assign_pixel(gt(r, c), (uint16_t)dm_ptr[dm_index++]);
+        }
+    }
+}
+
 //-----------------------------------------------------------------------------
 int main(int argc, char** argv)
 {
@@ -326,7 +354,6 @@ int main(int argc, char** argv)
             //te[0][m].set_size(crop_size.first, crop_size.second);
             tmp[m].set_size(crop_size.first, crop_size.second);
         }
-        //gt_test[0].set_size(crop_size.first, crop_size.second);
 
         // create a temporary container
         std::vector<uint8_t> fp1_ptr(crop_size.first * crop_size.second * 3);
@@ -338,22 +365,24 @@ int main(int argc, char** argv)
         // generate an image 
         generate_scene(vs_scale, crop_size.second, crop_size.first, fp1_ptr.data(), fp2_ptr.data(), dm_ptr.data());
 
-        int index = 0, dm_index = 0;
-        for (long r = 0; r < crop_size.first; ++r)
-        {
-            for (long c = 0; c < crop_size.second; ++c)
-            {
+        vect2matrix(crop_size.first, crop_size.second, fp1_ptr, fp2_ptr, dm_ptr, tmp, gt_tmp);
 
-                dlib::assign_pixel(tmp[2](r, c), (uint16_t)fp1_ptr[index]);
-                dlib::assign_pixel(tmp[5](r, c), (uint16_t)fp2_ptr[index++]);
-                dlib::assign_pixel(tmp[1](r, c), (uint16_t)fp1_ptr[index]);
-                dlib::assign_pixel(tmp[4](r, c), (uint16_t)fp2_ptr[index++]);
-                dlib::assign_pixel(tmp[0](r, c), (uint16_t)fp1_ptr[index]);
-                dlib::assign_pixel(tmp[3](r, c), (uint16_t)fp2_ptr[index++]);
+        //int index = 0, dm_index = 0;
+        //for (long r = 0; r < crop_size.first; ++r)
+        //{
+        //    for (long c = 0; c < crop_size.second; ++c)
+        //    {
 
-                dlib::assign_pixel(gt_tmp(r, c), (uint16_t)dm_ptr[dm_index++]);
-            }
-        }
+        //        dlib::assign_pixel(tmp[2](r, c), (uint16_t)fp1_ptr[index]);
+        //        dlib::assign_pixel(tmp[5](r, c), (uint16_t)fp2_ptr[index++]);
+        //        dlib::assign_pixel(tmp[1](r, c), (uint16_t)fp1_ptr[index]);
+        //        dlib::assign_pixel(tmp[4](r, c), (uint16_t)fp2_ptr[index++]);
+        //        dlib::assign_pixel(tmp[0](r, c), (uint16_t)fp1_ptr[index]);
+        //        dlib::assign_pixel(tmp[3](r, c), (uint16_t)fp2_ptr[index++]);
+
+        //        dlib::assign_pixel(gt_tmp(r, c), (uint16_t)dm_ptr[dm_index++]);
+        //    }
+        //}
 
         //te.push_back(tmp);
         //gt_test.push_back(gt_tmp);
@@ -384,22 +413,25 @@ int main(int argc, char** argv)
                     // generate an image 
             generate_scene(vs_scale, crop_size.second, crop_size.first, fp1_ptr.data(), fp2_ptr.data(), dm_ptr.data());
 
-            int index = 0, dm_index = 0;
-            for (long r = 0; r < crop_size.first; ++r)
-            {
-                for (long c = 0; c < crop_size.second; ++c)
-                {
+            vect2matrix(crop_size.first, crop_size.second, fp1_ptr, fp2_ptr, dm_ptr, tmp, gt_tmp);
 
-                    dlib::assign_pixel(tmp[2](r, c), (uint16_t)fp1_ptr[index]);
-                    dlib::assign_pixel(tmp[5](r, c), (uint16_t)fp2_ptr[index++]);
-                    dlib::assign_pixel(tmp[1](r, c), (uint16_t)fp1_ptr[index]);
-                    dlib::assign_pixel(tmp[4](r, c), (uint16_t)fp2_ptr[index++]);
-                    dlib::assign_pixel(tmp[0](r, c), (uint16_t)fp1_ptr[index]);
-                    dlib::assign_pixel(tmp[3](r, c), (uint16_t)fp2_ptr[index++]);
 
-                    dlib::assign_pixel(gt_tmp(r, c), (uint16_t)dm_ptr[dm_index++]);
-                }
-            }
+            //int index = 0, dm_index = 0;
+            //for (long r = 0; r < crop_size.first; ++r)
+            //{
+            //    for (long c = 0; c < crop_size.second; ++c)
+            //    {
+
+            //        dlib::assign_pixel(tmp[2](r, c), (uint16_t)fp1_ptr[index]);
+            //        dlib::assign_pixel(tmp[5](r, c), (uint16_t)fp2_ptr[index++]);
+            //        dlib::assign_pixel(tmp[1](r, c), (uint16_t)fp1_ptr[index]);
+            //        dlib::assign_pixel(tmp[4](r, c), (uint16_t)fp2_ptr[index++]);
+            //        dlib::assign_pixel(tmp[0](r, c), (uint16_t)fp1_ptr[index]);
+            //        dlib::assign_pixel(tmp[3](r, c), (uint16_t)fp2_ptr[index++]);
+
+            //        dlib::assign_pixel(gt_tmp(r, c), (uint16_t)dm_ptr[dm_index++]);
+            //    }
+            //}
 
 
             //te.clear();
