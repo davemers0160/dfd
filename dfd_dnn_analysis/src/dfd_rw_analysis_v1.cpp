@@ -37,6 +37,8 @@
 #include "load_dfd_data.h"
 #include "eval_dfd_net_performance.h"
 
+#include <vs_gen_lib.h>
+
 // dlib includes
 #include <dlib/dnn.h>
 #include <dlib/image_io.h>
@@ -109,7 +111,7 @@ int main(int argc, char** argv)
 
     std::pair<uint64_t, uint64_t > crop_size(32, 32);
     std::pair<uint32_t, uint32_t> scale(1, 1);
-    uint16_t gt_min = 0, gt_max = 0;
+    uint16_t gt_min = 0, gt_max = 22;
 
     // these are the parameters to load in an image to make sure that it is the correct size
     // for the network.  The first number makes sure that the image is a modulus of the number
@@ -189,7 +191,7 @@ int main(int argc, char** argv)
 
         output_save_location = path_check(output_save_location);
         std::cout << "output_save_location:   " << output_save_location << std::endl;
-
+/*
         // load the test data
 #if defined(_WIN32) | defined(__WIN32__) | defined(__WIN32) | defined(_WIN64) | defined(__WIN64)
         parse_csv_file(test_inputfile, test_file);
@@ -214,6 +216,12 @@ int main(int argc, char** argv)
         mkdir(output_save_location);
         
         std::cout << "data_directory:         " << data_directory << std::endl;
+*/
+
+        //-----------------------------------------------------------------------------
+        // read in the blur params
+        init_from_file(test_inputfile.c_str());
+        //-----------------------------------------------------------------------------
 
         get_current_time(sdate, stime);
         logfileName = logfileName + results_name + "_" + sdate + "_" + stime + ".txt";
@@ -241,13 +249,16 @@ int main(int argc, char** argv)
 
         data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
         data_log_stream << "Test image sets to parse: " << test_file.size() << std::endl << std::endl;
-      
+
+        /*
         start_time = chrono::system_clock::now();
         load_dfd_data(test_file, data_directory, mod_params, te, gt_test, image_files);
         
         stop_time = chrono::system_clock::now();
         elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);
         std::cout << "Loaded " << te.size() << " test image sets in " << elapsed_time.count() / 60 << " minutes." << std::endl << std::endl;
+        */
+
 
         std::cout << "Input Array Depth: " << img_depth << std::endl;
         std::cout << "Secondary data loading value: " << secondary << std::endl << std::endl;
@@ -303,7 +314,49 @@ int main(int argc, char** argv)
 
         dlib::matrix<uint16_t> map;
         dlib::matrix<double,1,6> results = dlib::zeros_matrix<double>(1,6);
-        
+
+        //-----------------------------------------------------------------------------
+        // setup everything for the first run
+        // set the size of the first vector
+        std::array<dlib::matrix<uint16_t>, img_depth> tmp;
+        dlib::matrix<uint16_t> gt_tmp = dlib::zeros_matrix<uint16_t>(crop_size.first, crop_size.second);
+        for (int m = 0; m < img_depth; ++m)
+        {
+            //te[0][m].set_size(crop_size.first, crop_size.second);
+            tmp[m].set_size(crop_size.first, crop_size.second);
+        }
+        //gt_test[0].set_size(crop_size.first, crop_size.second);
+
+        // create a temporary container
+        std::vector<uint8_t> fp1_ptr(crop_size.first * crop_size.second * 3);
+        std::vector<uint8_t> fp2_ptr(crop_size.first * crop_size.second * 3);
+        std::vector<uint8_t> dm_ptr(crop_size.first * crop_size.second);
+
+        double vs_scale = 0.1;
+
+        // generate an image 
+        generate_scene(vs_scale, crop_size.second, crop_size.first, fp1_ptr.data(), fp2_ptr.data(), dm_ptr.data());
+
+        int index = 0, dm_index = 0;
+        for (long r = 0; r < crop_size.first; ++r)
+        {
+            for (long c = 0; c < crop_size.second; ++c)
+            {
+
+                dlib::assign_pixel(tmp[2](r, c), fp1_ptr[index]);
+                dlib::assign_pixel(tmp[5](r, c), fp1_ptr[index++]);
+                dlib::assign_pixel(tmp[1](r, c), fp1_ptr[index]);
+                dlib::assign_pixel(tmp[4](r, c), fp1_ptr[index++]);
+                dlib::assign_pixel(tmp[0](r, c), fp1_ptr[index]);
+                dlib::assign_pixel(tmp[3](r, c), fp1_ptr[index++]);
+
+                dlib::assign_pixel(gt_tmp(r, c), (uint16_t)dm_ptr[dm_index++]);
+            }
+        }
+
+        te.push_back(tmp);
+        gt_test.push_back(gt_tmp);
+
         // run through the network once.  This primes the GPU and stabilizes the timing
         // don't need the results.
         eval_net_performance(dfd_net, te[0], gt_test[0], map, crop_size, scale);
