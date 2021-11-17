@@ -218,6 +218,7 @@ int main(int argc, char** argv)
         std::cout << "data_directory:         " << data_directory << std::endl;
 */
 
+        uint32_t num_test_images = 100;
         //-----------------------------------------------------------------------------
         // read in the blur params
         init_from_file(test_inputfile.c_str());
@@ -244,11 +245,11 @@ int main(int argc, char** argv)
         data_log_stream << "data_directory:       " << data_directory << std::endl;
         data_log_stream << "Data Input File:      " << test_inputfile << std::endl << std::endl;
 
-        std::cout << "Loading test images..." << std::endl;
-        std::cout << "Test image sets to parse: " << test_file.size() << std::endl;
+        //std::cout << "Loading test images..." << std::endl;
+        //std::cout << "Test image sets to parse: " << num_test_images << std::endl;
 
-        data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
-        data_log_stream << "Test image sets to parse: " << test_file.size() << std::endl << std::endl;
+        //data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
+        //data_log_stream << "Test image sets to parse: " << num_test_images << std::endl << std::endl;
 
         /*
         start_time = chrono::system_clock::now();
@@ -343,23 +344,23 @@ int main(int argc, char** argv)
             for (long c = 0; c < crop_size.second; ++c)
             {
 
-                dlib::assign_pixel(tmp[2](r, c), fp1_ptr[index]);
-                dlib::assign_pixel(tmp[5](r, c), fp1_ptr[index++]);
-                dlib::assign_pixel(tmp[1](r, c), fp1_ptr[index]);
-                dlib::assign_pixel(tmp[4](r, c), fp1_ptr[index++]);
-                dlib::assign_pixel(tmp[0](r, c), fp1_ptr[index]);
-                dlib::assign_pixel(tmp[3](r, c), fp1_ptr[index++]);
+                dlib::assign_pixel(tmp[2](r, c), (uint16_t)fp1_ptr[index]);
+                dlib::assign_pixel(tmp[5](r, c), (uint16_t)fp2_ptr[index++]);
+                dlib::assign_pixel(tmp[1](r, c), (uint16_t)fp1_ptr[index]);
+                dlib::assign_pixel(tmp[4](r, c), (uint16_t)fp2_ptr[index++]);
+                dlib::assign_pixel(tmp[0](r, c), (uint16_t)fp1_ptr[index]);
+                dlib::assign_pixel(tmp[3](r, c), (uint16_t)fp2_ptr[index++]);
 
                 dlib::assign_pixel(gt_tmp(r, c), (uint16_t)dm_ptr[dm_index++]);
             }
         }
 
-        te.push_back(tmp);
-        gt_test.push_back(gt_tmp);
+        //te.push_back(tmp);
+        //gt_test.push_back(gt_tmp);
 
         // run through the network once.  This primes the GPU and stabilizes the timing
         // don't need the results.
-        eval_net_performance(dfd_net, te[0], gt_test[0], map, crop_size, scale);
+        eval_net_performance(dfd_net, tmp, gt_tmp, map, crop_size, scale);
         dlib::rand rnd(time(NULL));
 
         float dm_scale = 1.0;
@@ -369,7 +370,7 @@ int main(int argc, char** argv)
         dlib::matrix<double> cm = dlib::zeros_matrix<double>(gt_max+1, gt_max+1);
 
 
-        for (idx = 0; idx < te.size(); ++idx)
+        for (idx = 0; idx < num_test_images; ++idx)
         {
             // add noise
             //apply_poisson_noise(te[idx], 2.0, rnd, 0.0, 255.0);
@@ -380,9 +381,35 @@ int main(int argc, char** argv)
             //    te[idx][jdx] = dlib::matrix_cast<uint16_t>(dlib::matrix_cast<double>(te[idx][jdx]) * 0.95);
             //}
 
+                    // generate an image 
+            generate_scene(vs_scale, crop_size.second, crop_size.first, fp1_ptr.data(), fp2_ptr.data(), dm_ptr.data());
+
+            int index = 0, dm_index = 0;
+            for (long r = 0; r < crop_size.first; ++r)
+            {
+                for (long c = 0; c < crop_size.second; ++c)
+                {
+
+                    dlib::assign_pixel(tmp[2](r, c), (uint16_t)fp1_ptr[index]);
+                    dlib::assign_pixel(tmp[5](r, c), (uint16_t)fp2_ptr[index++]);
+                    dlib::assign_pixel(tmp[1](r, c), (uint16_t)fp1_ptr[index]);
+                    dlib::assign_pixel(tmp[4](r, c), (uint16_t)fp2_ptr[index++]);
+                    dlib::assign_pixel(tmp[0](r, c), (uint16_t)fp1_ptr[index]);
+                    dlib::assign_pixel(tmp[3](r, c), (uint16_t)fp2_ptr[index++]);
+
+                    dlib::assign_pixel(gt_tmp(r, c), (uint16_t)dm_ptr[dm_index++]);
+                }
+            }
+
+
+            //te.clear();
+            //gt_test.clear();
+            //te.push_back(tmp);
+            //gt_test.push_back(gt_tmp);
+
             // time and analyze the results
             start_time = chrono::system_clock::now(); 
-            results = eval_net_performance(dfd_net, te[idx], gt_test[idx], map, crop_size, scale, dm_scale);
+            results = eval_net_performance(dfd_net, tmp, gt_tmp, map, crop_size, scale, dm_scale);
             stop_time = chrono::system_clock::now();
 
             elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);
@@ -392,20 +419,20 @@ int main(int argc, char** argv)
             {
                 for (uint32_t c = 0; c < map.nc(); ++c)
                 {
-                    cm(gt_test[idx](r,c), map(r,c)) += 1.0;
+                    cm(gt_tmp(r,c), map(r,c)) += 1.0;
                 }
             }
 
             // create a depthmap version in RGB 
             dlib::matrix<dlib::rgb_pixel> dm_img = mat_to_rgbjetmat(dlib::matrix_cast<float>(map)*dm_scale, 0.0, (float)gt_max);
-            dlib::matrix<dlib::rgb_pixel> gt_img = mat_to_rgbjetmat(dlib::matrix_cast<float>(gt_test[idx])*dm_scale, 0.0, (float)gt_max);
+            dlib::matrix<dlib::rgb_pixel> gt_img = mat_to_rgbjetmat(dlib::matrix_cast<float>(gt_tmp)*dm_scale, 0.0, (float)gt_max);
 
             image_num = num2str(idx, "%05d");
 
 #ifndef DLIB_NO_GUI_SUPPORT
 
-            merge_channels(te[idx], rgb_img1, 0);
-            merge_channels(te[idx], rgb_img2, 3);
+            merge_channels(tmp, rgb_img1, 0);
+            merge_channels(tmp, rgb_img2, 3);
 
             img_montage.set_size(rgb_img1.nr(), rgb_img1.nc() * 2);
             dlib::set_subm(img_montage, 0, 0, rgb_img1.nr(), rgb_img1.nc()) = rgb_img1;
@@ -436,9 +463,9 @@ int main(int argc, char** argv)
             std::cout << "------------------------------------------------------------------" << std::endl;
             std::cout << "Depthmap generation completed in: " << elapsed_time.count() << " seconds." << std::endl;
             std::cout << "Image Size (h x w): " << map.nr() << " x " << map.nc() << std::endl;
-            std::cout << "Focus File:     " << image_files[idx].first << std::endl;
-            std::cout << "Defocus File:   " << image_files[idx].second << std::endl;
-            std::cout << "Depth Map File: " << dm_filename << std::endl;
+            //std::cout << "Focus File:     " << image_files[idx].first << std::endl;
+            //std::cout << "Defocus File:   " << image_files[idx].second << std::endl;
+            //std::cout << "Depth Map File: " << dm_filename << std::endl;
             std::cout << "NMAE   " << image_num << ": " << std::fixed << std::setprecision(5) << results(0, 0) << std::endl;
             std::cout << "NRMSE  " << image_num << ": " << std::fixed << std::setprecision(5) << results(0, 1) << std::endl;
             std::cout << "SSIM   " << image_num << ": " << std::fixed << std::setprecision(5) << results(0, 2) << std::endl;
@@ -449,9 +476,9 @@ int main(int argc, char** argv)
             data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
             data_log_stream << "Depthmap generation completed in: " << elapsed_time.count() << " seconds." << std::endl;
             data_log_stream << "Image Size (h x w): " << map.nr() << " x " << map.nc() << std::endl;
-            data_log_stream << "Focus File:     " << image_files[idx].first << std::endl;
-            data_log_stream << "Defocus File:   " << image_files[idx].second << std::endl;
-            data_log_stream << "Depth Map File: " << dm_filename << std::endl;
+            //data_log_stream << "Focus File:     " << image_files[idx].first << std::endl;
+            //data_log_stream << "Defocus File:   " << image_files[idx].second << std::endl;
+            //data_log_stream << "Depth Map File: " << dm_filename << std::endl;
             data_log_stream << "NMAE   " << image_num << ": " << std::fixed << std::setprecision(5) << results(0, 0) << std::endl;
             data_log_stream << "NRMSE  " << image_num << ": " << std::fixed << std::setprecision(5) << results(0, 1) << std::endl;
             data_log_stream << "SSIM   " << image_num << ": " << std::fixed << std::setprecision(5) << results(0, 2) << std::endl;
@@ -500,17 +527,17 @@ int main(int argc, char** argv)
 
         std::cout << "------------------------------------------------------------------" << std::endl;
         std::cout << "Average Image Analysis Results:" << std::endl;
-        std::cout << "Average NMAE:   " << nmae_accum / (double)te.size() << std::endl;
-        std::cout << "Average NRMSE:  " << nrmse_accum / (double)te.size() << std::endl;
-        std::cout << "Average SSIM:   " << ssim_accum / (double)te.size() << std::endl;
-        std::cout << "Average SILOG:  " << silog_accum / (double)te.size() << std::endl;
-        std::cout << "Average Var_GT: " << var_gt_accum / (double)te.size() << std::endl;
-        std::cout << "Average Var_DM: " << var_dm_accum / (double)te.size() << std::endl;
+        std::cout << "Average NMAE:   " << nmae_accum / (double)num_test_images << std::endl;
+        std::cout << "Average NRMSE:  " << nrmse_accum / (double)num_test_images << std::endl;
+        std::cout << "Average SSIM:   " << ssim_accum / (double)num_test_images << std::endl;
+        std::cout << "Average SILOG:  " << silog_accum / (double)num_test_images << std::endl;
+        std::cout << "Average Var_GT: " << var_gt_accum / (double)num_test_images << std::endl;
+        std::cout << "Average Var_DM: " << var_dm_accum / (double)num_test_images << std::endl;
 
         //std::cout << "Average VIPF Val:  " << vipf_accum / (double)count << std::endl;
         std::cout << "------------------------------------------------------------------" << std::endl;
-        std::cout << "Average NMAE, NRMSE, SSIM, SILOG,  Var_GT, Var_DM: " << nmae_accum / (double)te.size() << ", " << nrmse_accum / (double)te.size() << ", " << ssim_accum / (double)te.size()
-                  << ", " << silog_accum / (double)te.size() << ", " << var_gt_accum / (double)te.size() << ", " << var_dm_accum / (double)te.size() << std::endl;
+        std::cout << "Average NMAE, NRMSE, SSIM, SILOG,  Var_GT, Var_DM: " << nmae_accum / (double)num_test_images << ", " << nrmse_accum / (double)num_test_images << ", " << ssim_accum / (double)num_test_images
+                  << ", " << silog_accum / (double)num_test_images << ", " << var_gt_accum / (double)num_test_images << ", " << var_dm_accum / (double)num_test_images << std::endl;
         std::cout << std::endl;
 
         std::cout << "------------------------------------------------------------------" << std::endl;
@@ -521,17 +548,17 @@ int main(int argc, char** argv)
 
         data_log_stream << std::endl << "#------------------------------------------------------------------------------" << std::endl;
         data_log_stream << "Average Image Analysis Results:" << std::endl;
-        data_log_stream << "Average NMAE:   " << nmae_accum / (double)te.size() << std::endl;
-        data_log_stream << "Average NRMSE:  " << nrmse_accum / (double)te.size() << std::endl;
-        data_log_stream << "Average SSIM:   " << ssim_accum / (double)te.size() << std::endl;       
-        data_log_stream << "Average SILOG:  " << silog_accum / (double)te.size() << std::endl;
-        data_log_stream << "Average Var_GT: " << var_gt_accum / (double)te.size() << std::endl;
-        data_log_stream << "Average Var_DM: " << var_dm_accum / (double)te.size() << std::endl;
+        data_log_stream << "Average NMAE:   " << nmae_accum / (double)num_test_images << std::endl;
+        data_log_stream << "Average NRMSE:  " << nrmse_accum / (double)num_test_images << std::endl;
+        data_log_stream << "Average SSIM:   " << ssim_accum / (double)num_test_images << std::endl;
+        data_log_stream << "Average SILOG:  " << silog_accum / (double)num_test_images << std::endl;
+        data_log_stream << "Average Var_GT: " << var_gt_accum / (double)num_test_images << std::endl;
+        data_log_stream << "Average Var_DM: " << var_dm_accum / (double)num_test_images << std::endl;
 
         // just save everything for easy copying
         data_log_stream << std::endl << "#------------------------------------------------------------------------------" << std::endl;
-        data_log_stream << "Average NMAE, NRMSE, SSIM, Var_GT, Var_DM: " << nmae_accum / (double)te.size() << ", " << nrmse_accum / (double)te.size() << ", " << ssim_accum / (double)te.size()
-                      << ", " << silog_accum / (double)te.size() << ", " << var_gt_accum / (double)te.size() << ", " << var_dm_accum / (double)te.size() << std::endl;
+        data_log_stream << "Average NMAE, NRMSE, SSIM, Var_GT, Var_DM: " << nmae_accum / (double)num_test_images << ", " << nrmse_accum / (double)num_test_images << ", " << ssim_accum / (double)num_test_images
+                      << ", " << silog_accum / (double)num_test_images << ", " << var_gt_accum / (double)num_test_images << ", " << var_dm_accum / (double)num_test_images << std::endl;
         data_log_stream << std::endl;
 
         data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
