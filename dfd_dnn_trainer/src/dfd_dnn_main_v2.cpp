@@ -44,6 +44,8 @@
 #include "eval_dfd_net_performance.h"  
 #include "image_noise_functions.h"
 
+#include "vs_gen_lib.h"
+
 // dlib includes
 #include <dlib/dnn.h>
 #include <dlib/image_io.h>
@@ -205,15 +207,15 @@ int main(int argc, char** argv)
 
     // check the input scaling factors.  if they are the same then the expansion factor for the cropper is all 8
     // otherwise the expansion factor is 4
-    if(ci.scale.first == ci.scale.second)
-        expansion_factor = 8;
-    else
-        expansion_factor = 4;
+    //if(ci.scale.first == ci.scale.second)
+    expansion_factor = 8;
+    //else
+    //    expansion_factor = 4;
 
     // modify crop sizes based on scales
     // this is done to make crop size input easier
-    ci.train_crop_sizes.first = ci.train_crop_sizes.first * ci.scale.first;
-    ci.train_crop_sizes.second = ci.train_crop_sizes.second * ci.scale.second;
+    //ci.train_crop_sizes.first = ci.train_crop_sizes.first * ci.scale.first;
+    //ci.train_crop_sizes.second = ci.train_crop_sizes.second * ci.scale.second;
 
     // check the platform
     get_platform_control();
@@ -295,6 +297,7 @@ int main(int argc, char** argv)
  
         std::cout << "Training input file:          " << train_inputfile << std::endl;
         // parse through the supplied training csv file
+/*
 #if defined(_WIN32) | defined(__WIN32__) | defined(__WIN32) | defined(_WIN64) | defined(__WIN64)
         parse_csv_file(train_inputfile, training_file);
         // the first line in this file is now the data directory
@@ -330,11 +333,12 @@ int main(int argc, char** argv)
 
         elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);
         std::cout << "Loaded " << tr.size() << " training image sets in " << elapsed_time.count() / 60 << " minutes." << std::endl << std::endl;
-
+*/
 
 //-----------------------------------------------------------------------------
         // load the test data
         std::cout << "Test input file:          " << test_inputfile << std::endl;
+/*
 #if defined(_WIN32) | defined(__WIN32__) | defined(__WIN32) | defined(_WIN64) | defined(__WIN64)
         parse_csv_file(test_inputfile, test_file);
         test_data_directory = data_home + test_file[0][0];
@@ -371,11 +375,22 @@ int main(int argc, char** argv)
 
         elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);
         std::cout << "Loaded " << te.size() << " test image sets in " << elapsed_time.count() / 60 << " minutes." << std::endl << std::endl;
-               
+*/
+        uint32_t test_images = 50;
+
         // get the min and max depthmap values based on the training ground truth
         // this assumes that only trainable depthmap values are in the data set
-        uint16_t min_val, max_val;
-        get_gt_min_max(gt_train, min_val, max_val);
+
+        // these are statically set right now.  need to update vs_gen code to output the min/max dm values for a given scenario
+        uint16_t min_val = 0;
+        uint16_t max_val = 22;
+
+        //-----------------------------------------------------------------------------
+        // read in the blur params
+        init_from_file(train_inputfile.c_str());
+        //-----------------------------------------------------------------------------
+
+        //get_gt_min_max(gt_train, min_val, max_val);
 
         // do a check of the depthmap values to ensure that there are enough outputs in the  
         // network to cover the data input range

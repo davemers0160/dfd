@@ -53,6 +53,8 @@ elseif(${PLATFORM} STREQUAL "HPC")
 elseif(${PLATFORM} STREQUAL "BEAST")
     set(COMMON_ROOT "E:/Projects/Common")
     set(DLIB_CONTRIB "E:/Projects/dlib-contrib")
+    set(VS_GEN_ROOT "E:/Projects/vs_gen")
+    set(VS_GEN_LIB "${VS_GEN_ROOT}/build/Release/vs_gen")
     #set(DFD_COMMON_ROOT "D:/Projects/dfd_common")	
     include(E:/dlib-19.22/dlib/cmake)
 else()
@@ -74,6 +76,7 @@ set(project_includes "include"
     "${PR_ROOT}/common/include"
     "${COMMON_ROOT}/include" 
     "${DLIB_CONTRIB}/include" 
+    "${VS_GEN_ROOT}/include"
     )
             
 message(" ")
@@ -105,7 +108,7 @@ message("Cuda version: " ${CUDA_VERSION})
 
 include_directories(${project_includes})
 add_executable(${exe_name} ${SOURCES})
-target_link_libraries(${exe_name} dlib::dlib)
+target_link_libraries(${exe_name} dlib::dlib "${VS_GEN_LIB}.lib")
 
 if(WIN32)
     message("MSVC Version: " ${MSVC_VERSION})
