@@ -233,12 +233,11 @@ int main(int argc, char** argv)
 #endif
 
         test_file.erase(test_file.begin());
+        std::cout << "data_directory:         " << data_directory << std::endl;
+*/
 
         // make sure that the save location is there and create if not
         mkdir(output_save_location);
-        
-        std::cout << "data_directory:         " << data_directory << std::endl;
-*/
 
         uint32_t num_test_images = 100;
         //-----------------------------------------------------------------------------
@@ -361,23 +360,22 @@ int main(int argc, char** argv)
 
         dlib::matrix<double> cm = dlib::zeros_matrix<double>(gt_max+1, gt_max+1);
 
-
         for (idx = 0; idx < num_test_images; ++idx)
         {
-            // add noise
-            //apply_poisson_noise(te[idx], 2.0, rnd, 0.0, 255.0);
-
-            // change lighting intensity
-            //for (jdx = 0; jdx < te[idx].size(); ++jdx)
-            //{
-            //    te[idx][jdx] = dlib::matrix_cast<uint16_t>(dlib::matrix_cast<double>(te[idx][jdx]) * 0.95);
-            //}
-
             // generate an image 
             generate_scene(vs_scale, crop_size.second, crop_size.first, fp1_ptr.data(), fp2_ptr.data(), dm_ptr.data());
 
             // convert the vector pointers to dlib::matrix
             vect2matrix(crop_size.first, crop_size.second, fp1_ptr, fp2_ptr, dm_ptr, tmp, gt_tmp);
+            
+            // add noise
+            apply_poisson_noise(tmp, 8.0, rnd, 0.0, 255.0);
+
+            // change lighting intensity
+            //for (jdx = 0; jdx < img_depth; ++jdx)
+            //{
+            //    tmp[jdx] = dlib::matrix_cast<uint16_t>(dlib::matrix_cast<double>(tmp[jdx]) * 0.95);
+            //}
 
             // time and analyze the results
             start_time = chrono::system_clock::now(); 
