@@ -62,14 +62,12 @@ std::string platform;
 std::string logfileName = "dfd_net_analysis_results_";
 
 // ----------------------------------------------------------------------------
-
 void get_platform_control(void)
 {
     get_platform(platform);
 }
 
 //-----------------------------------------------------------------------------
-
 void print_usage(void)
 {
     std::cout << "Enter the following as arguments into the program:" << std::endl;
@@ -77,6 +75,7 @@ void print_usage(void)
     std::cout << endl;
 }
 
+//-----------------------------------------------------------------------------
 inline void vect2matrix(
     uint32_t img_h,
     uint32_t img_w,
@@ -134,19 +133,14 @@ int main(int argc, char** argv)
     auto stop_time = chrono::system_clock::now();
     auto elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);
 
-    std::vector<std::array<dlib::matrix<uint16_t>, img_depth>> te, te_crop;
-    std::vector<dlib::matrix<uint16_t>> gt_train, gt_test, gt_crop;
+    std::vector<std::array<dlib::matrix<uint16_t>, img_depth>> te;
+    std::vector<dlib::matrix<uint16_t>> gt_test;
 
     std::pair<uint64_t, uint64_t > crop_size(32, 32);
     std::pair<uint32_t, uint32_t> scale(1, 1);
-    uint16_t gt_min = 0, gt_max = 22;
+    uint16_t gt_max = 0;
 
-    // these are the parameters to load in an image to make sure that it is the correct size
-    // for the network.  The first number makes sure that the image is a modulus of the number
-    // and the second number is an offest from the modulus.  This is used based on the network
-    // structure (downsampling and upsampling tensor sizes).
-    std::pair<uint32_t, uint32_t> mod_params(16, 0);  
-    
+   
     //////////////////////////////////////////////////////////////////////////////////
 
     if (argc == 1)
@@ -279,16 +273,6 @@ int main(int argc, char** argv)
         //data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
         //data_log_stream << "Test image sets to parse: " << num_test_images << std::endl << std::endl;
 
-        /*
-        start_time = chrono::system_clock::now();
-        load_dfd_data(test_file, data_directory, mod_params, te, gt_test, image_files);
-        
-        stop_time = chrono::system_clock::now();
-        elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);
-        std::cout << "Loaded " << te.size() << " test image sets in " << elapsed_time.count() / 60 << " minutes." << std::endl << std::endl;
-        */
-
-
         std::cout << "Input Array Depth: " << img_depth << std::endl;
         std::cout << "Secondary data loading value: " << secondary << std::endl << std::endl;
 
@@ -327,7 +311,6 @@ int main(int argc, char** argv)
 #ifndef DLIB_NO_GUI_SUPPORT
         dlib::image_window win0;
         dlib::image_window win1;
-        //dlib::image_window win2;
 #endif
         dlib::matrix<dlib::rgb_pixel> dm_montage, img_montage;
         dlib::matrix<dlib::rgb_pixel> rgb_img1, rgb_img2;
@@ -351,7 +334,6 @@ int main(int argc, char** argv)
         dlib::matrix<uint16_t> gt_tmp = dlib::zeros_matrix<uint16_t>(crop_size.first, crop_size.second);
         for (int m = 0; m < img_depth; ++m)
         {
-            //te[0][m].set_size(crop_size.first, crop_size.second);
             tmp[m].set_size(crop_size.first, crop_size.second);
         }
 
@@ -365,27 +347,8 @@ int main(int argc, char** argv)
         // generate an image 
         generate_scene(vs_scale, crop_size.second, crop_size.first, fp1_ptr.data(), fp2_ptr.data(), dm_ptr.data());
 
+        // convert the vector pointers to dlib::matrix
         vect2matrix(crop_size.first, crop_size.second, fp1_ptr, fp2_ptr, dm_ptr, tmp, gt_tmp);
-
-        //int index = 0, dm_index = 0;
-        //for (long r = 0; r < crop_size.first; ++r)
-        //{
-        //    for (long c = 0; c < crop_size.second; ++c)
-        //    {
-
-        //        dlib::assign_pixel(tmp[2](r, c), (uint16_t)fp1_ptr[index]);
-        //        dlib::assign_pixel(tmp[5](r, c), (uint16_t)fp2_ptr[index++]);
-        //        dlib::assign_pixel(tmp[1](r, c), (uint16_t)fp1_ptr[index]);
-        //        dlib::assign_pixel(tmp[4](r, c), (uint16_t)fp2_ptr[index++]);
-        //        dlib::assign_pixel(tmp[0](r, c), (uint16_t)fp1_ptr[index]);
-        //        dlib::assign_pixel(tmp[3](r, c), (uint16_t)fp2_ptr[index++]);
-
-        //        dlib::assign_pixel(gt_tmp(r, c), (uint16_t)dm_ptr[dm_index++]);
-        //    }
-        //}
-
-        //te.push_back(tmp);
-        //gt_test.push_back(gt_tmp);
 
         // run through the network once.  This primes the GPU and stabilizes the timing
         // don't need the results.
@@ -410,34 +373,11 @@ int main(int argc, char** argv)
             //    te[idx][jdx] = dlib::matrix_cast<uint16_t>(dlib::matrix_cast<double>(te[idx][jdx]) * 0.95);
             //}
 
-                    // generate an image 
+            // generate an image 
             generate_scene(vs_scale, crop_size.second, crop_size.first, fp1_ptr.data(), fp2_ptr.data(), dm_ptr.data());
 
+            // convert the vector pointers to dlib::matrix
             vect2matrix(crop_size.first, crop_size.second, fp1_ptr, fp2_ptr, dm_ptr, tmp, gt_tmp);
-
-
-            //int index = 0, dm_index = 0;
-            //for (long r = 0; r < crop_size.first; ++r)
-            //{
-            //    for (long c = 0; c < crop_size.second; ++c)
-            //    {
-
-            //        dlib::assign_pixel(tmp[2](r, c), (uint16_t)fp1_ptr[index]);
-            //        dlib::assign_pixel(tmp[5](r, c), (uint16_t)fp2_ptr[index++]);
-            //        dlib::assign_pixel(tmp[1](r, c), (uint16_t)fp1_ptr[index]);
-            //        dlib::assign_pixel(tmp[4](r, c), (uint16_t)fp2_ptr[index++]);
-            //        dlib::assign_pixel(tmp[0](r, c), (uint16_t)fp1_ptr[index]);
-            //        dlib::assign_pixel(tmp[3](r, c), (uint16_t)fp2_ptr[index++]);
-
-            //        dlib::assign_pixel(gt_tmp(r, c), (uint16_t)dm_ptr[dm_index++]);
-            //    }
-            //}
-
-
-            //te.clear();
-            //gt_test.clear();
-            //te.push_back(tmp);
-            //gt_test.push_back(gt_tmp);
 
             // time and analyze the results
             start_time = chrono::system_clock::now(); 
@@ -479,10 +419,6 @@ int main(int argc, char** argv)
             win1.clear_overlay();
             win1.set_image(dm_montage);
             win1.set_title("Image " + image_num + ": Groundtruth & DFD Depthmaps");
-
-            //win2.clear_overlay();
-            //win2.set_image(dm_img);
-            //win2.set_title("DFD DNN Depthmap");
 
             //std::cin.ignore();
             dlib::sleep(100);
