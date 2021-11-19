@@ -36,6 +36,7 @@
 #include "dfd_dnn_analysis.h"
 #include "load_dfd_data.h"
 #include "eval_dfd_net_performance.h"
+#include "vect2matrix.h"
 
 #include <vs_gen_lib.h>
 
@@ -74,35 +75,35 @@ void print_usage(void)
     std::cout << "<config file>" << std::endl;
     std::cout << endl;
 }
-
-//-----------------------------------------------------------------------------
-inline void vect2matrix(
-    uint32_t img_h,
-    uint32_t img_w,
-    std::vector<uint8_t>& fp1_ptr,
-    std::vector<uint8_t>& fp2_ptr,
-    std::vector<uint8_t>& dm_ptr,
-    std::array<dlib::matrix<uint16_t>, img_depth> &t,
-    dlib::matrix<uint16_t> &gt
-    )
-{
-    int index = 0, dm_index = 0;
-    for (long r = 0; r < img_h; ++r)
-    {
-        for (long c = 0; c < img_w; ++c)
-        {
-
-            dlib::assign_pixel(t[2](r, c), (uint16_t)fp1_ptr[index]);
-            dlib::assign_pixel(t[5](r, c), (uint16_t)fp2_ptr[index++]);
-            dlib::assign_pixel(t[1](r, c), (uint16_t)fp1_ptr[index]);
-            dlib::assign_pixel(t[4](r, c), (uint16_t)fp2_ptr[index++]);
-            dlib::assign_pixel(t[0](r, c), (uint16_t)fp1_ptr[index]);
-            dlib::assign_pixel(t[3](r, c), (uint16_t)fp2_ptr[index++]);
-
-            dlib::assign_pixel(gt(r, c), (uint16_t)dm_ptr[dm_index++]);
-        }
-    }
-}
+//
+////-----------------------------------------------------------------------------
+//inline void vect2matrix(
+//    uint32_t img_h,
+//    uint32_t img_w,
+//    std::vector<uint8_t>& fp1_ptr,
+//    std::vector<uint8_t>& fp2_ptr,
+//    std::vector<uint8_t>& dm_ptr,
+//    std::array<dlib::matrix<uint16_t>, img_depth> &t,
+//    dlib::matrix<uint16_t> &gt
+//    )
+//{
+//    int index = 0, dm_index = 0;
+//    for (long r = 0; r < img_h; ++r)
+//    {
+//        for (long c = 0; c < img_w; ++c)
+//        {
+//
+//            dlib::assign_pixel(t[2](r, c), (uint16_t)fp1_ptr[index]);
+//            dlib::assign_pixel(t[5](r, c), (uint16_t)fp2_ptr[index++]);
+//            dlib::assign_pixel(t[1](r, c), (uint16_t)fp1_ptr[index]);
+//            dlib::assign_pixel(t[4](r, c), (uint16_t)fp2_ptr[index++]);
+//            dlib::assign_pixel(t[0](r, c), (uint16_t)fp1_ptr[index]);
+//            dlib::assign_pixel(t[3](r, c), (uint16_t)fp2_ptr[index++]);
+//
+//            dlib::assign_pixel(gt(r, c), (uint16_t)dm_ptr[dm_index++]);
+//        }
+//    }
+//}
 
 //-----------------------------------------------------------------------------
 int main(int argc, char** argv)
@@ -351,7 +352,7 @@ int main(int argc, char** argv)
 
         // run through the network once.  This primes the GPU and stabilizes the timing
         // don't need the results.
-        eval_net_performance(dfd_net, tmp, gt_tmp, map, crop_size, scale);
+        eval_net_performance(dfd_net, tmp, gt_tmp, map, crop_size);
         dlib::rand rnd(time(NULL));
 
         float dm_scale = 1.0;
@@ -379,7 +380,7 @@ int main(int argc, char** argv)
 
             // time and analyze the results
             start_time = chrono::system_clock::now(); 
-            results = eval_net_performance(dfd_net, tmp, gt_tmp, map, crop_size, scale, dm_scale);
+            results = eval_net_performance(dfd_net, tmp, gt_tmp, map, crop_size);
             stop_time = chrono::system_clock::now();
 
             elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);
