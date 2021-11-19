@@ -43,6 +43,7 @@
 #include "load_dfd_data.h"
 #include "eval_dfd_net_performance.h"  
 #include "image_noise_functions.h"
+#include "vect2matrix.h"
 
 #include "vs_gen_lib.h"
 
@@ -424,7 +425,7 @@ int main(int argc, char** argv)
         dfd_cropper cropper;
         cropper.set_chip_dims(ci.train_crop_sizes);
         cropper.set_seed(time(0));
-        cropper.set_scale(ci.scale);
+        //cropper.set_scale(ci.scale);
         cropper.set_expansion_factor(expansion_factor);
         //cropper.set_stats_filename((output_save_location + cropper_stats_file));
 
@@ -488,12 +489,43 @@ int main(int argc, char** argv)
         dlib::matrix<double, 1, 6> train_results = dlib::zeros_matrix<double>(1, 6);
         dlib::matrix<double, 1, 6> test_results = dlib::zeros_matrix<double>(1, 6);
 
+        //-----------------------------------------------------------------------------
+        // setup everything for the first run
+        // set the size of the first vector
+        std::array<dlib::matrix<uint16_t>, img_depth> tmp;
+        dlib::matrix<uint16_t> gt_tmp = dlib::zeros_matrix<uint16_t>(ci.vs_size.first, ci.vs_size.second);
+        for (int m = 0; m < img_depth; ++m)
+        {
+            tmp[m].set_size(ci.vs_size.first, ci.vs_size.second);
+        }
+
+        // create a temporary container
+        std::vector<uint8_t> fp1_ptr(ci.vs_size.first * ci.vs_size.second * 3);
+        std::vector<uint8_t> fp2_ptr(ci.vs_size.first * ci.vs_size.second * 3);
+        std::vector<uint8_t> dm_ptr(ci.vs_size.first * ci.vs_size.second);
+
+        double vs_scale = 0.1;
+
         while(stop < 0)       
         {
 
             if (trainer.get_learning_rate() >= tp.final_learning_rate)
             {
-                cropper(ci.crop_num, tr, gt_train, tr_crop, gt_crop);
+                tr_crop.clear();
+                gt_crop.clear();
+
+                for (idx = 0; idx < ci.crop_num; ++idx)
+                {
+                    // generate an image 
+                    generate_scene(vs_scale, ci.vs_size.second, ci.vs_size.first, fp1_ptr.data(), fp2_ptr.data(), dm_ptr.data());
+
+                    // convert the vector pointers to dlib::matrix
+                    vect2matrix(ci.vs_size.first, ci.vs_size.second, fp1_ptr, fp2_ptr, dm_ptr, tmp, gt_tmp);
+                    
+                    cropper.single(tmp, gt_tmp, tr_crop, gt_crop);
+                }
+
+                
 
                 // @mem((gt_crop[0].data).data,UINT16,1,gt_crop[0].nc(), gt_crop[0].nr(),gt_crop[0].nc()*2)
                 // @mem((tr_crop[0][0].data).data,UINT16,1,tr_crop[0][0].nc(), tr_crop[0][0].nr(),tr_crop[0][0].nc()*2)
@@ -504,7 +536,7 @@ int main(int argc, char** argv)
                 {
                     // @mem((tc[0].data).data, UINT16, 1, tc[0].nc(), tc[0].nr(), tc[0].nc() * 2)
                     //apply_uniform_noise((uint8_t)0, (uint8_t)255, tc, rnd, std);
-                    apply_poisson_noise(tc, std, rnd, 0.0, 255.0);
+                    apply_poisson_noise(tc, ci.noise_std, rnd, 0.0, 255.0);
 
                     scale_intensity(tc, rnd, 0.3, 1.0);
                 }
@@ -639,7 +671,7 @@ int main(int argc, char** argv)
 
         std::cout << "Analyzing Training Results..." << std::endl;
 
-        train_results = eval_all_net_performance(dfd_net, tr, gt_train, ci.eval_crop_sizes, ci.scale);
+        train_results = eval_all_net_performance(dfd_net, tr, gt_train, ci.eval_crop_sizes);
         std::cout << "------------------------------------------------------------------" << std::endl;
         std::cout << "NMAE, NRMSE, SSIM, Var_GT, Var_DM: " << std::fixed << std::setprecision(6) << train_results(0, 0) << ", " << train_results(0, 1) << ", " << train_results(0, 2) << ", " << train_results(0, 4) << ", " << train_results(0, 5) << std::endl;
 
@@ -668,7 +700,7 @@ int main(int argc, char** argv)
             //center_cropper(tr[idx], test_crop, crop_sizes[1].second * scale.first, crop_sizes[1].first * scale.second);
 
             start_time = chrono::system_clock::now();
-            tmp_results = eval_net_performance(dfd_net, tr[idx], gt_train[idx], map, ci.eval_crop_sizes, ci.scale);
+            tmp_results = eval_net_performance(dfd_net, tr[idx], gt_train[idx], map, ci.eval_crop_sizes);
             //dlib::matrix<uint16_t> map = dfd_test_net(test_crop);
             stop_time = chrono::system_clock::now();
             
@@ -704,7 +736,7 @@ int main(int argc, char** argv)
 
         std::cout << std::endl << "Analyzing Test Results..." << std::endl;
 
-        test_results = eval_all_net_performance(dfd_net, te, gt_test, ci.eval_crop_sizes, ci.scale);
+        test_results = eval_all_net_performance(dfd_net, te, gt_test, ci.eval_crop_sizes);
         std::cout << "------------------------------------------------------------------" << std::endl;
         std::cout << "NMAE, NRMSE, SSIM, Var_GT, Var_DM: " << std::fixed << std::setprecision(6) << test_results(0, 0) << ", " << test_results(0, 1) << ", " << test_results(0, 2) << ", " << test_results(0, 4) << ", " << test_results(0, 5) << std::endl;
 
@@ -731,7 +763,7 @@ int main(int argc, char** argv)
             //center_cropper(te[idx], test_crop, crop_sizes[1].second * scale.first, crop_sizes[1].first * scale.second);
 
             start_time = chrono::system_clock::now();
-            tmp_results = eval_net_performance(dfd_net, te[idx], gt_test[idx], map, ci.eval_crop_sizes, ci.scale);
+            tmp_results = eval_net_performance(dfd_net, te[idx], gt_test[idx], map, ci.eval_crop_sizes);
             //dlib::matrix<uint16_t> map = dfd_test_net(test_crop);
             stop_time = chrono::system_clock::now();
 
