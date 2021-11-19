@@ -155,7 +155,45 @@ public:
         save_cropper_stats(cr_stats);
 
     }   // end of append    
-    
+
+// ----------------------------------------------------------------------------------------
+
+    template<typename image_type1, typename gt_type1, typename image_type2, typename gt_type2>
+    void single(
+        const image_type1& img,
+        const gt_type1& gt,
+        image_type2& img_crops,
+        gt_type2& gt_crops
+    )
+    {
+
+        //DLIB_CASSERT(img.size() == gt.size());
+        DLIB_CASSERT(img_crops.size() == gt_crops.size());
+
+        long original_size = img_crops.size();
+        //const uint64_t img_count = img.size();
+
+        img_crops.resize(original_size + expansion_factor);
+        gt_crops.resize(original_size + expansion_factor);
+        cr_stats.resize(original_size + 1);
+
+        //dlib::parallel_for(original_size, original_size + num_crops, [&](long idx)
+        //    {
+        //        uint64_t img_index = rnd.get_integer(img_count);
+
+                cr_stats[original_size].img_index = 0;
+                cr_stats[original_size].img_h = gt.nr();
+                cr_stats[original_size].img_w = gt.nc();
+
+                //(*this)(img, gt, &img_crops[idx * expansion_factor], &gt_crops[idx * expansion_factor], &cr_stats[idx]);
+                (*this)(img, gt, &img_crops[original_size], &gt_crops[original_size], &cr_stats[original_size]);
+            //});
+
+
+        save_cropper_stats(cr_stats);
+
+    }   // end of single    
+
 // ----------------------------------------------------------------------------------------
 
     template<typename array_type1, typename image_type1, typename array_type2, typename image_type2, typename cr_struct>
