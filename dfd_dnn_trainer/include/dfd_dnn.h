@@ -28,14 +28,16 @@ typedef struct training_params {
 typedef struct crop_info {
 
     crop_info() = default;
-    crop_info(uint64_t n, std::pair<uint64_t, uint64_t> tcs, std::pair<uint64_t, uint64_t> ecs, std::pair<uint32_t, uint32_t> sc) : crop_num(n), train_crop_sizes(tcs), eval_crop_sizes(ecs), scale(sc) {}
+    crop_info(uint64_t n, std::pair<uint64_t, uint64_t> tcs, std::pair<uint64_t, uint64_t> ecs, std::pair<uint32_t, uint32_t> vs_size_, double std) : crop_num(n), train_crop_sizes(tcs), eval_crop_sizes(ecs), vs_size(vs_size_), noise_std(std) {}
 
     uint64_t crop_num;
     //uint64_t crop_height;
     //uint64_t crop_width;
     std::pair<uint64_t, uint64_t> train_crop_sizes;
     std::pair<uint64_t, uint64_t> eval_crop_sizes;
-    std::pair<uint32_t, uint32_t> scale;
+    std::pair<uint32_t, uint32_t> vs_size;
+    double noise_std;
+
 } crop_info;
 
 // ----------------------------------------------------------------------------------------
@@ -146,12 +148,13 @@ void parse_dnn_data_file(std::string parseFilename,
                     ci = crop_info(stol(params[idx][0]), 
                         std::make_pair(stol(params[idx][1]), stol(params[idx][2])), 
                         std::make_pair(stol(params[idx][3]), stol(params[idx][4])),
-                        std::make_pair(stol(params[idx][5]), stol(params[idx][6])));
+                        std::make_pair(stol(params[idx][5]), stol(params[idx][6])),
+                        std::stod(params[idx][7]));
                 }
                 catch (std::exception & e) {
                     std::cout << e.what() << std::endl;
                     std::cout << "Setting crop-info to defalut values..." << std::endl;
-                    ci = crop_info(40, std::make_pair(32, 32), std::make_pair(352, 352), std::make_pair(1,1));
+                    ci = crop_info(40, std::make_pair(32, 32), std::make_pair(352, 352), std::make_pair(64,64), 3.0);
                 }
                 break;
 
