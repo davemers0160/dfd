@@ -135,7 +135,8 @@ int main(int argc, char** argv)
     std::string test_inputfile;
     std::string train_data_directory, test_data_directory;
     std::string data_home = "";
-    
+    std::string image_num;
+
     std::vector<std::vector<std::string>> training_file;
     std::vector<std::vector<std::string>> test_file;
     std::vector<std::pair<std::string, std::string>> tr_image_files, te_image_files;
@@ -149,8 +150,10 @@ int main(int argc, char** argv)
     std::vector<dlib::matrix<uint16_t>> gt_train, gt_test;
     dlib::matrix<uint16_t> map;
 
-    std::vector<std::array<dlib::matrix<uint16_t>, img_depth>> tr;
-    std::vector<std::array<dlib::matrix<uint16_t>, img_depth>> te;
+    uint32_t num_channels = img_depth >> 1;
+
+    //std::vector<std::array<dlib::matrix<uint16_t>, img_depth>> tr;
+    //std::vector<std::array<dlib::matrix<uint16_t>, img_depth>> te;
 
     std::vector<std::string> stop_codes = { "Minimum Learning Rate Reached.", "Max Training Time Reached", "Max Training Steps Reached" };
     std::vector<double> stop_criteria;
@@ -377,7 +380,7 @@ int main(int argc, char** argv)
         elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);
         std::cout << "Loaded " << te.size() << " test image sets in " << elapsed_time.count() / 60 << " minutes." << std::endl << std::endl;
 */
-        uint32_t test_images = 50;
+        uint32_t num_test_images = 50;
 
         // get the min and max depthmap values based on the training ground truth
         // this assumes that only trainable depthmap values are in the data set
@@ -500,8 +503,8 @@ int main(int argc, char** argv)
         }
 
         // create a temporary container
-        std::vector<uint8_t> fp1_ptr(ci.vs_size.first * ci.vs_size.second * 3);
-        std::vector<uint8_t> fp2_ptr(ci.vs_size.first * ci.vs_size.second * 3);
+        std::vector<uint8_t> fp1_ptr(ci.vs_size.first * ci.vs_size.second * num_channels);
+        std::vector<uint8_t> fp2_ptr(ci.vs_size.first * ci.vs_size.second * num_channels);
         std::vector<uint8_t> dm_ptr(ci.vs_size.first * ci.vs_size.second);
 
         double vs_scale = 0.1;
@@ -632,8 +635,8 @@ int main(int argc, char** argv)
 
         cropper.close_cropper_stream();
 
-        te_crop.clear();
-        gt_te_crop.clear();
+        //te_crop.clear();
+        //gt_te_crop.clear();
 
 		std::cout << std::endl << "------------------------------------------------------------------" << std::endl;
         std::cout << "Stop Code: " << stop_codes[stop] << std::endl;
@@ -660,12 +663,19 @@ int main(int argc, char** argv)
         dfd_net.clean();
         dlib::serialize(sync_save_location + net_name) << dfd_net;
 
+        gt_max = (uint16_t)((dlib::layer<1>(dfd_net).layer_details().num_filters() - 1));
+
         ///////////////////////////////////////////////////////////////////////////////
         // Step 4: Show the training results
         ///////////////////////////////////////////////////////////////////////////////
 
+        
+        std::array<dlib::matrix<uint16_t>, img_depth> test_crop;
+        dlib::matrix<double, 1, 6> tmp_results;
+
         //dfd_net_type dfd_test_net;
 
+/*
         //std::cout << std::endl << "Loading " << (sync_save_location + net_name) << std::endl;
         //dlib::deserialize(sync_save_location + net_name) >> dfd_test_net;
 
@@ -678,13 +688,9 @@ int main(int argc, char** argv)
         DataLogStream << "------------------------------------------------------------------" << std::endl;
         DataLogStream << "Training Image Analysis Results:" <<std::endl;
         DataLogStream << "NMAE, NRMSE, SSIM, Var_GT, Var_DM: " << std::fixed << std::setprecision(6) << train_results(0, 0) << ", " << train_results(0, 1) << ", " << train_results(0, 2) << ", " << train_results(0, 4) << ", " << train_results(0, 5) << std::endl;
-        
-        std::array<dlib::matrix<uint16_t>, img_depth> test_crop;
-        dlib::matrix<uint16_t> map;
-        dlib::matrix<double, 1, 6> tmp_results;
 
-        gt_max = (uint16_t)((dlib::layer<1>(dfd_net).layer_details().num_filters() - 1));
-        
+
+
 #ifndef DLIB_NO_GUI_SUPPORT
 
 
@@ -729,13 +735,14 @@ int main(int argc, char** argv)
         }
 
 #endif
+*/
 
         ///////////////////////////////////////////////////////////////////////////////
         // Step 5: Run through test images
         ///////////////////////////////////////////////////////////////////////////////
 
         std::cout << std::endl << "Analyzing Test Results..." << std::endl;
-
+/*
         test_results = eval_all_net_performance(dfd_net, te, gt_test, ci.eval_crop_sizes);
         std::cout << "------------------------------------------------------------------" << std::endl;
         std::cout << "NMAE, NRMSE, SSIM, Var_GT, Var_DM: " << std::fixed << std::setprecision(6) << test_results(0, 0) << ", " << test_results(0, 1) << ", " << test_results(0, 2) << ", " << test_results(0, 4) << ", " << test_results(0, 5) << std::endl;
@@ -752,37 +759,70 @@ int main(int argc, char** argv)
         DataLogStream << std::fixed << std::setprecision(6) << train_results(0, 0) << ", " << train_results(0, 1) << ", " << train_results(0, 2) << ", " << train_results(0, 4) << ", " << train_results(0, 5) << ", ";
         DataLogStream << std::fixed << std::setprecision(6) << test_results(0, 0) << ", " << test_results(0, 1) << ", " << test_results(0, 2) << ", " << test_results(0, 4) << ", " << test_results(0, 5) << std::endl;
         DataLogStream << "------------------------------------------------------------------" << std::endl;
-
+*/
 
 #ifndef DLIB_NO_GUI_SUPPORT
 
-        std::cout << "Image Count: " << te.size() << std::endl;;
+        dlib::image_window win0;
+        dlib::image_window win1;
+        dlib::image_window win2;
 
-        for (idx = 0; idx < te.size(); ++idx)
+        dlib::matrix<dlib::rgb_pixel> dm_montage, img_montage;
+        dlib::matrix<dlib::rgb_pixel> rgb_img1, rgb_img2;
+
+        // resize the vector containers for the eval crop size
+        fp1_ptr.resize(ci.eval_crop_sizes.first * ci.eval_crop_sizes.second * num_channels);
+        fp2_ptr.resize(ci.eval_crop_sizes.first * ci.eval_crop_sizes.second * num_channels);
+        dm_ptr.resize(ci.eval_crop_sizes.first * ci.eval_crop_sizes.second);
+
+        //set the size of the dlib::mtrix objects
+        gt_tmp.set_size(ci.eval_crop_sizes.first, ci.eval_crop_sizes.second);
+        for (int m = 0; m < img_depth; ++m)
         {
-            //center_cropper(te[idx], test_crop, crop_sizes[1].second * scale.first, crop_sizes[1].first * scale.second);
+            tmp[m].set_size(ci.eval_crop_sizes.first, ci.eval_crop_sizes.second);
+        }
+
+        std::cout << "Image Count: " << num_test_images << std::endl;;
+
+        for (idx = 0; idx < num_test_images; ++idx)
+        {
+            // generate an image 
+            generate_scene(vs_scale, ci.eval_crop_sizes.first, ci.eval_crop_sizes.first, fp1_ptr.data(), fp2_ptr.data(), dm_ptr.data());
+
+            // convert the vector pointers to dlib::matrix
+            vect2matrix(ci.eval_crop_sizes.first, ci.eval_crop_sizes.second, fp1_ptr, fp2_ptr, dm_ptr, tmp, gt_tmp);
+
+            // add noise
+            apply_poisson_noise(tmp, ci.noise_std, rnd, 0.0, 255.0);
 
             start_time = chrono::system_clock::now();
-            tmp_results = eval_net_performance(dfd_net, te[idx], gt_test[idx], map, ci.eval_crop_sizes);
-            //dlib::matrix<uint16_t> map = dfd_test_net(test_crop);
+            tmp_results = eval_net_performance(dfd_net, tmp, gt_tmp, map, ci.eval_crop_sizes);
             stop_time = chrono::system_clock::now();
+
+            // create a depthmap version in RGB 
+            dlib::matrix<dlib::rgb_pixel> dm_img = mat_to_rgbjetmat(dlib::matrix_cast<float>(map), 0.0, (float)gt_max);
+            dlib::matrix<dlib::rgb_pixel> gt_img = mat_to_rgbjetmat(dlib::matrix_cast<float>(gt_tmp), 0.0, (float)gt_max);
+
+            image_num = num2str(idx, "%05d");
 
             if(img_depth >= 3)
             {
-                dlib::matrix<dlib::rgb_pixel> rgb_img;
-                merge_channels(te[idx], rgb_img, 0);
+                merge_channels(tmp, rgb_img1, 0);
+                merge_channels(tmp, rgb_img2, num_channels);
 
+                img_montage.set_size(rgb_img1.nr(), rgb_img1.nc() * 2);
+                dlib::set_subm(img_montage, 0, 0, rgb_img1.nr(), rgb_img1.nc()) = rgb_img1;
+                dlib::set_subm(img_montage, 0, rgb_img1.nc(), rgb_img1.nr(), rgb_img1.nc()) = rgb_img2;
                 win0.clear_overlay();
-                win0.set_image(rgb_img);
-                win0.set_title("Input Image");
+                win0.set_image(img_montage);
+                win0.set_title("Focus 1 & Focus 2 Images");
 
+                dm_montage.set_size(gt_img.nr(), gt_img.nc() * 2);
+                dlib::set_subm(dm_montage, 0, 0, gt_img.nr(), gt_img.nc()) = gt_img;
+                dlib::set_subm(dm_montage, 0, gt_img.nc(), gt_img.nr(), gt_img.nc()) = dm_img;
                 win1.clear_overlay();
-                win1.set_image(mat_to_rgbjetmat(dlib::matrix_cast<float>(gt_test[idx]),0.0,(float)gt_max));
-                win1.set_title("Groundtruth Depthmap");
-
-                win2.clear_overlay();
-                win2.set_image(mat_to_rgbjetmat(dlib::matrix_cast<float>(map),0.0,(float)gt_max));
-                win2.set_title("DFD DNN Depthmap");
+                win1.set_image(dm_montage);
+                win1.set_title("Image " + image_num + ": Groundtruth & DFD Depthmaps");
             }
             
             elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);

@@ -141,6 +141,8 @@ int main(int argc, char** argv)
     std::pair<uint32_t, uint32_t> scale(1, 1);
     uint16_t gt_max = 0;
 
+    uint32_t num_channels = img_depth >> 1;
+
    
     //////////////////////////////////////////////////////////////////////////////////
 
@@ -338,8 +340,8 @@ int main(int argc, char** argv)
         }
 
         // create a temporary container
-        std::vector<uint8_t> fp1_ptr(crop_size.first * crop_size.second * 3);
-        std::vector<uint8_t> fp2_ptr(crop_size.first * crop_size.second * 3);
+        std::vector<uint8_t> fp1_ptr(crop_size.first * crop_size.second * num_channels);
+        std::vector<uint8_t> fp2_ptr(crop_size.first * crop_size.second * num_channels);
         std::vector<uint8_t> dm_ptr(crop_size.first * crop_size.second);
 
         double vs_scale = 0.1;
@@ -403,7 +405,7 @@ int main(int argc, char** argv)
 #ifndef DLIB_NO_GUI_SUPPORT
 
             merge_channels(tmp, rgb_img1, 0);
-            merge_channels(tmp, rgb_img2, 3);
+            merge_channels(tmp, rgb_img2, num_channels);
 
             img_montage.set_size(rgb_img1.nr(), rgb_img1.nc() * 2);
             dlib::set_subm(img_montage, 0, 0, rgb_img1.nr(), rgb_img1.nc()) = rgb_img1;
