@@ -299,7 +299,9 @@ int main(int argc, char** argv)
         // get the "DATA_HOME" environment variable <- location of the root data folder
         //data_home = path_check(get_env_variable("DATA_HOME"));
  
-        std::cout << "Training input file:          " << train_inputfile << std::endl;
+        std::cout << "Training input file:  " << train_inputfile << std::endl;
+        std::cout << "Test input file:      " << test_inputfile << std::endl;
+        
         // parse through the supplied training csv file
 /*
 #if defined(_WIN32) | defined(__WIN32__) | defined(__WIN32) | defined(_WIN64) | defined(__WIN64)
@@ -341,7 +343,7 @@ int main(int argc, char** argv)
 
 //-----------------------------------------------------------------------------
         // load the test data
-        std::cout << "Test input file:          " << test_inputfile << std::endl;
+
 /*
 #if defined(_WIN32) | defined(__WIN32__) | defined(__WIN32) | defined(_WIN64) | defined(__WIN64)
         parse_csv_file(test_inputfile, test_file);
