@@ -245,7 +245,7 @@ int main(int argc, char** argv)
         uint32_t num_test_images = 100;
         //-----------------------------------------------------------------------------
         // read in the blur params
-        init_from_file(test_inputfile.c_str());
+        init_vs_gen_from_file(test_inputfile.c_str());
         //-----------------------------------------------------------------------------
 
         get_current_time(sdate, stime);
@@ -347,7 +347,7 @@ int main(int argc, char** argv)
         double vs_scale = 0.1;
 
         // generate an image 
-        generate_scene(vs_scale, crop_size.second, crop_size.first, fp1_ptr.data(), fp2_ptr.data(), dm_ptr.data());
+        generate_vs_scene(vs_scale, crop_size.second, crop_size.first, fp1_ptr.data(), fp2_ptr.data(), dm_ptr.data());
 
         // convert the vector pointers to dlib::matrix
         vect2matrix(crop_size.first, crop_size.second, fp1_ptr, fp2_ptr, dm_ptr, tmp, gt_tmp);
@@ -357,22 +357,22 @@ int main(int argc, char** argv)
         eval_net_performance(dfd_net, tmp, gt_tmp, map, crop_size);
         dlib::rand rnd(time(NULL));
 
-        float dm_scale = 1.0;
+        //float dm_scale = 1.0;
         // assume that the maximum depthmap value is the number of filters of the last layer - 1
-        gt_max = (uint16_t)((dlib::layer<1>(dfd_net).layer_details().num_filters() - 1)*dm_scale);
+        gt_max = (uint16_t)((dlib::layer<1>(dfd_net).layer_details().num_filters() - 1));
 
         dlib::matrix<double> cm = dlib::zeros_matrix<double>(gt_max+1, gt_max+1);
 
         for (idx = 0; idx < num_test_images; ++idx)
         {
             // generate an image 
-            generate_scene(vs_scale, crop_size.second, crop_size.first, fp1_ptr.data(), fp2_ptr.data(), dm_ptr.data());
+            generate_vs_scene(vs_scale, crop_size.second, crop_size.first, fp1_ptr.data(), fp2_ptr.data(), dm_ptr.data());
 
             // convert the vector pointers to dlib::matrix
             vect2matrix(crop_size.first, crop_size.second, fp1_ptr, fp2_ptr, dm_ptr, tmp, gt_tmp);
             
             // add noise
-            apply_poisson_noise(tmp, 8.0, rnd, 0.0, 255.0);
+            apply_poisson_noise(tmp, 4.0, rnd, 0.0, 255.0);
 
             // change lighting intensity
             //for (jdx = 0; jdx < img_depth; ++jdx)
@@ -397,8 +397,8 @@ int main(int argc, char** argv)
             }
 
             // create a depthmap version in RGB 
-            dlib::matrix<dlib::rgb_pixel> dm_img = mat_to_rgbjetmat(dlib::matrix_cast<float>(map)*dm_scale, 0.0, (float)gt_max);
-            dlib::matrix<dlib::rgb_pixel> gt_img = mat_to_rgbjetmat(dlib::matrix_cast<float>(gt_tmp)*dm_scale, 0.0, (float)gt_max);
+            dlib::matrix<dlib::rgb_pixel> dm_img = mat_to_rgbjetmat(dlib::matrix_cast<float>(map), 0.0, (float)gt_max);
+            dlib::matrix<dlib::rgb_pixel> gt_img = mat_to_rgbjetmat(dlib::matrix_cast<float>(gt_tmp), 0.0, (float)gt_max);
 
             image_num = num2str(idx, "%05d");
 
