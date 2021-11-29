@@ -33,6 +33,7 @@
 #include "get_cuda_devices.h"
 //#include "apply_random_noise.h"
 #include "array_image_operations.h"
+#include "dlib_matrix_ops.h"
 
 // Net Version
 // Things must go in this order since the array size is determined by the network header file
@@ -299,8 +300,12 @@ int main(int argc, char** argv)
         //data_home = path_check(get_env_variable("DATA_HOME"));
  
         std::cout << "Training input file:  " << train_inputfile << std::endl;
-        std::cout << "Test input file:      " << test_inputfile << std::endl;
-        
+        std::cout << "Test input file:      " << test_inputfile << std::endl << std::endl;
+
+        data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
+        data_log_stream << "Training input file:  " << train_inputfile << std::endl;
+        data_log_stream << "Test input file:      " << test_inputfile << std::endl << std::endl;
+       
         // parse through the supplied training csv file
 /*
 #if defined(_WIN32) | defined(__WIN32__) | defined(__WIN32) | defined(_WIN64) | defined(__WIN64)
@@ -887,11 +892,13 @@ int main(int argc, char** argv)
         // just save everything for easy copying
         std::cout << std::endl << "#------------------------------------------------------------------------------" << std::endl;
         std::cout << "# Confussion Matrix:" << std::endl;
-        std::cout << std::fixed << std::setprecision(0) << dlib::csv << cm << std::endl;
+        std::cout << std::setfill(' ');
+        std::cout << fixed_width_mat< dlib::matrix<uint64_t> >(dlib::matrix_cast<uint64_t>(cm), 7) << std::endl;
 
         data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
         data_log_stream << "# Confussion Matrix:" << std::endl;
-        data_log_stream << std::fixed << std::setprecision(0) << dlib::csv << cm << std::endl;
+//        data_log_stream << std::setw(7) << std::setfill(' ') << std::fixed << std::setprecision(0) << dlib::csv << dlib::matrix_cast<uint64_t>(cm) << std::endl;
+        data_log_stream << fixed_width_mat< dlib::matrix<uint64_t> >(dlib::matrix_cast<uint64_t>(cm), 7) << std::endl;
 
         std::cout << "#------------------------------------------------------------------------------" << std::endl;
         std::cout << "# Depthmap Error:" << std::endl;
