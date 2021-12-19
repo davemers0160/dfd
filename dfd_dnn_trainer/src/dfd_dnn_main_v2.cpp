@@ -37,7 +37,7 @@
 
 // Net Version
 // Things must go in this order since the array size is determined by the network header file
-#include "dfd_net_v16.h"
+#include "dfd_net_v16b.h"
 //#include "dfd_net_lin_v01.h"
 //#include "dfd_net_l2_v01.h"
 #include "dfd_dnn.h"
@@ -802,7 +802,7 @@ int main(int argc, char** argv)
         for (idx = 0; idx < num_test_images; ++idx)
         {
             // generate an image 
-            generate_vs_scene(vs_scale, shape_scale, ci.eval_crop_sizes.first, ci.eval_crop_sizes.first, fp1_ptr.data(), fp2_ptr.data(), dm_ptr.data());
+            generate_vs_scene(vs_scale, shape_scale, ci.eval_crop_sizes.second, ci.eval_crop_sizes.first, fp1_ptr.data(), fp2_ptr.data(), dm_ptr.data());
 
             // convert the vector pointers to dlib::matrix
             vect2matrix(ci.eval_crop_sizes.first, ci.eval_crop_sizes.second, fp1_ptr, fp2_ptr, dm_ptr, tmp, gt_tmp);
