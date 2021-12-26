@@ -49,7 +49,7 @@ template <long num_filters, typename SUBNET> using cont9u = dlib::cont<num_filte
 
 /*
 
-input -> tag10-> cbp7_blk -> dfd_res_77 [dtago1] ----------------------> [dtagi1] cbp3_blk -> dfd_res_33 -> prelu -> bn_con -> con3(N) -> output
+input -> tag10-> cbp9_blk -> dfd_res_77 [dtago1] ----------------------> [dtagi1] cbp3_blk -> dfd_res_33 -> prelu -> bn_con -> con3(N) -> output
                                  \                                                   /
                                 con2d                                             cont2u
                                    \                                               /
