@@ -19,7 +19,7 @@
 
 //----------------------------------------------------------------------------------
 // library internal state variables:
-adfd_net_type net;
+adfd_net_type dfd_net;
 // double pyr_scale;
 // unsigned long outer_padding;
 // unsigned long padding;
@@ -27,18 +27,20 @@ adfd_net_type net;
 // std::vector<dlib::rgb_pixel> class_color;
 
 //----------------------------------------------------------------------------------
-void init_net(const char *net_name, unsigned int *num_classes, struct window_struct* &det_win, unsigned int *num_win)
+void init_net(const char *net_name, unsigned int *num_classes)
 {
     int gpu = 0;
 
     dlib::cuda::set_device(gpu);
 
-    dlib::deserialize(net_name) >> net;
+    dlib::deserialize(net_name) >> dfd_net;
+
+    *num_classes = (uint32_t)(dlib::layer<1>(dfd_net).layer_details().num_filters() - 1);
 
 }   // end of init_net
 
 //----------------------------------------------------------------------------------
-void run_net(unsigned char* image_f1, unsigned char* image_f2, unsigned int nr, unsigned int nc, unsigned unsigned* depth_map)
+void run_net(unsigned char* image_f1, unsigned char* image_f2, unsigned int nr, unsigned int nc, unsigned short* depth_map)
 {
 
     uint64_t r, c;
@@ -50,15 +52,15 @@ void run_net(unsigned char* image_f1, unsigned char* image_f2, unsigned int nr, 
     //dlib::matrix<dlib::rgb_pixel> img(nr, nc);
     //std::array<dlib::matrix<uint8_t>, array_depth> a_img;
 
-    std::array<dlib::matrix<uint8_t>, img_depth> img;
+    std::array<dlib::matrix<uint16_t>, img_depth> img;
     
     // get the images size and resize the t array
-    for (idx = 0; idx < img_depth; ++idx)
-    {
-        img[idx].set_size(nr, nc);
-    }
+    //for (idx = 0; idx < img_depth; ++idx)
+    //{
+    //    img[idx].set_size(nr, nc);
+    //}
     
-    uint64_t size = (uint64_t)nr * (uint64_t)nc;
+    //uint64_t size = (uint64_t)nr * (uint64_t)nc;
 
     try 
     {
@@ -69,9 +71,9 @@ void run_net(unsigned char* image_f1, unsigned char* image_f2, unsigned int nr, 
             img[idx].set_size(nr, nc);
         }
         
-        for (r = 0; r < f.nr(); ++r)
+        for (r = 0; r < nr; ++r)
         {
-            for (c = 0; c < f.nc(); ++c)
+            for (c = 0; c < nc; ++c)
             {
                 //dlib::assign_pixel(p, f(r, c));
                 dlib::assign_pixel(img[0](r, c), *image_f1++);
@@ -84,19 +86,17 @@ void run_net(unsigned char* image_f1, unsigned char* image_f2, unsigned int nr, 
             }
         }
 
-        dlib::matrix<uint16_t> dm = net(img);
+        dlib::matrix<uint16_t> dm = dfd_net(img);
 
 
-        det_img = new unsigned char[tmp_img.nr() * tmp_img.nc() * 3L];
+        //det_img = new unsigned char[tmp_img.nr() * tmp_img.nc() * 3L];
 
         idx = 0;
         for (r = 0; r < nr; ++r)
         {
             for (c = 0; c < nc; ++c)
             {
-                det_img[idx++] = tmp_img(r, c).red;
-                det_img[idx++] = tmp_img(r, c).green;
-                det_img[idx++] = tmp_img(r, c).blue;
+                depth_map[idx++] = dm(r, c);
             }
         }
     }
@@ -172,35 +172,42 @@ void get_cropped_detections(unsigned char* input_img,
 void close_lib()
 {
     std::cout << "Closing..." << std::endl;
-    net.clean();
+    dfd_net.clean();
 
     //class_names.clear();
     //class_color.clear();
 
 }   // end of close_lib
 
+
+//----------------------------------------------------------------------------------
+void print_net() 
+{
+    std::cout << dfd_net << std::endl;
+}
+
 //----------------------------------------------------------------------------------
 void get_layer_01(struct layer_struct *data, const float* &data_params)
 {
-    auto& lo = dlib::layer<1>(net).get_output();
-    data->k = lo.k();
-    data->n = lo.num_samples();
-    data->nr = lo.nr();
-    data->nc = lo.nc();
-    data->size = lo.size();
-    data_params = lo.host();
+    //auto& lo = dlib::layer<1>(net).get_output();
+    //data->k = lo.k();
+    //data->n = lo.num_samples();
+    //data->nr = lo.nr();
+    //data->nc = lo.nc();
+    //data->size = lo.size();
+    //data_params = lo.host();
 }
 
 //----------------------------------------------------------------------------------
 void get_input_layer(layer_struct *data, const float* &data_params)
 {
-    auto& lo = dlib::layer<net_type::num_layers - 2>(net).get_output();
-    data->k = lo.k();
-    data->n = lo.num_samples();
-    data->nr = lo.nr();
-    data->nc = lo.nc();
-    data->size = lo.size();
-    data_params = lo.host();
+    //auto& lo = dlib::layer<net_type::num_layers - 2>(net).get_output();
+    //data->k = lo.k();
+    //data->n = lo.num_samples();
+    //data->nr = lo.nr();
+    //data->nc = lo.nc();
+    //data->size = lo.size();
+    //data_params = lo.host();
 }
 
 //----------------------------------------------------------------------------------
