@@ -28,10 +28,6 @@
 #endif
 
 // ----------------------------------------------------------------------------------------
-const int label_size = 256;
-
-
-// ----------------------------------------------------------------------------------------
 struct layer_struct
 {
     unsigned int k;
@@ -41,65 +37,6 @@ struct layer_struct
     unsigned int size;
 };
 
-// ----------------------------------------------------------------------------------------
-struct detection_struct
-{
-    unsigned int x;
-    unsigned int y;
-    unsigned int w;
-    unsigned int h;
-    char name[label_size];
-
-    detection_struct()
-    {
-        x = 0;
-        y = 0;
-        w = 0;
-        h = 0;
-        name[0] = 0;
-    }
-
-    detection_struct(unsigned int x_, unsigned int y_, unsigned int w_, unsigned int h_, const char name_[])
-    {
-        x = x_;
-        y = y_;
-        w = w_;
-        h = h_;
-        strcpy(name, name_);
-    }
-
-};
-
-// ----------------------------------------------------------------------------------------
-struct detection_center
-{
-    unsigned int x;
-    unsigned int y;
-    char name[label_size];
-
-    detection_center()
-    {
-        x = 0;
-        y = 0;
-        name[0] = 0;
-    }
-
-    detection_center(unsigned int x_, unsigned int y_, const char name_[])
-    {
-        x = x_;
-        y = y_;
-        strcpy(name, name_);
-    }
-
-};
-
-// ----------------------------------------------------------------------------------------
-struct window_struct
-{
-    unsigned int w;
-    unsigned int h;
-    char label[label_size];
-};
 
 // ----------------------------------------------------------------------------------------
 #ifdef __cplusplus

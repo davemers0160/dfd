@@ -10,6 +10,7 @@
 # Example CMake build line for windows & VS2015
 # windows: cmake -G "Visual Studio 14 2015 Win64" -DUSE_AVX_INSTRUCTIONS=ON ..
 # linux: cmake -DUSE_AVX_INSTRUCTIONS=ON ..
+# cmake -DCMAKE_CXX_FLAGS=-fPIC -DCMAKE_C_FLAGS=-fPIC ..
 #
 # 5. To compile:
 # windows: cmake --build . --config Release
@@ -19,10 +20,10 @@
 cmake_minimum_required(VERSION 3.9)
 
 project(dfd_dnn_lib VERSION 1.0 DESCRIPTION "Shared library for a Depth from Defocus DNN built using dlib")
-set(CMAKE_CXX_STANDARD 11)
+#set(CMAKE_CXX_STANDARD 11)
 
 set(LIB_NAME "dfd_dnn")
-set(default_build_type "Release")
+#set(default_build_type "Release")
 
 set(PLATFORM "$ENV{PLATFORM}" CACHE INTERNAL "Copied from environment variable")
 if("${PLATFORM}" STREQUAL "")
@@ -60,6 +61,7 @@ if(WIN32)
         set(DLIB_ROOT "D:/dlib-19.19")
         set(DLIB_CONTRIB "D:/Projects/dlib-contrib")
     endif()
+    
     include(${DLIB_ROOT}/dlib/cmake)
 
 else()
@@ -71,15 +73,19 @@ else()
         set(DLIB_CONTRIB "${HOME}/Projects/dlib-contrib")
     elseif(${PLATFORM} STREQUAL "MainGear")
         set(COMMON_ROOT "${HOME}/Projects/Common")
-        set(DLIB_ROOT "${HOME}/dlib-19.19")
+        set(DLIB_ROOT "${HOME}/dlib-19.22")
         set(DLIB_CONTRIB "${HOME}/Projects/dlib-contrib")
     else()
         set(COMMON_ROOT "${HOME}/Projects/Common")
         set(DLIB_ROOT "${HOME}/dlib-19.19")
         set(DLIB_CONTRIB "${HOME}/Projects/dlib-contrib")
     endif()
-    #add_subdirectory(${DLIB_ROOT}/dlib dlib_build)
-
+    
+    #if(BUILD_LIB AND UNIX)
+    #    find_package(dlib REQUIRED)
+    #endif()    
+    include(${DLIB_ROOT}/dlib/cmake)
+    
 endif()
 
 
@@ -92,13 +98,6 @@ set(project_includes "include"
     "${COMMON_ROOT}/include" 
     "${DLIB_CONTRIB}/include" 
     )
-
-if(BUILD_LIB AND UNIX)
-    #set(SOURCES ${SOURCES} "${DLIB_ROOT}/dlib/all/source.cpp")
-    #set(project_includes ${project_includes} ${DLIB_ROOT})
-
-    find_package(dlib REQUIRED)
-endif()
 
 
 # if(NOT BUILD_LIB)
@@ -120,23 +119,31 @@ endif()
 
 # ----------------------------------------------------------------------------
 message(" ")
-message("--------------------------------------------------------")
+message("--------------------------------------------------------------------------------")
 message("Source Files: ")
 foreach(S ${SOURCES})
     message("  " ${S})
 endforeach()
-message("--------------------------------------------------------")
+message("--------------------------------------------------------------------------------")
 
 message(" ")
 
-message("--------------------------------------------------------")
+message("--------------------------------------------------------------------------------")
 message("Project Includes: ")
 foreach(S ${project_includes})
     message("  " ${S})
 endforeach()
-message("--------------------------------------------------------")
-message(" ")
+message("--------------------------------------------------------------------------------")
 
+message(" ")
+message("--------------------------------------------------------------------------------")
+message("Project Libraries: ")
+foreach(S ${project_libs})
+    message("  " ${S})
+endforeach()
+message("--------------------------------------------------------------------------------")
+
+message(" ")
 include_directories(${project_includes})
 
 # ----------------------------------------------------------------------------
@@ -163,13 +170,16 @@ elseif(UNIX)
 
     # Change these to point to the right location for a particular machine
     #add_definitions("-fPIC")
+
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+    #set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -fPIC)
+
     #find_package(X11 REQUIRED)
     add_library(${LIB_NAME} SHARED ${SOURCES})
     set_target_properties(${LIB_NAME} PROPERTIES VERSION ${PROJECT_VERSION})
     #target_link_libraries(${LIB_NAME} ${X11_LIBRARIES})
     #target_link_libraries(${LIB_NAME} dlib::dlib ${X11_LIBRARIES})
-    target_link_libraries(${LIB_NAME} dlib::dlib)
+    target_link_libraries(${LIB_NAME} dlib)
 
 elseif(APPLE)
     message(FATAL_ERROR "Apple -> Not Even!")
