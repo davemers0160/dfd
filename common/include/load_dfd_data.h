@@ -29,11 +29,12 @@
 extern const uint32_t img_depth;
 extern const uint32_t secondary;
 
+template<typename T>
 void load_dfd_data(
     const std::vector<std::vector<std::string>> training_file, 
     const std::string data_directory,
     std::pair<uint32_t, uint32_t> mod_params,
-    std::vector<std::array<dlib::matrix<uint16_t>, img_depth>> &t_data,
+    std::vector<std::array<dlib::matrix<T>, img_depth>> &t_data,
     std::vector<dlib::matrix<uint16_t>> &gt,
     std::vector<std::pair<std::string, std::string>> &image_files
 )
@@ -69,7 +70,7 @@ void load_dfd_data(
         image_files.push_back(std::make_pair(FocusFile, DefocusFile));
         
         // load in the data files
-        std::array<dlib::matrix<uint16_t>, img_depth> t;
+        std::array<dlib::matrix<T>, img_depth> t;
         dlib::matrix<uint16_t> tf, td;
         dlib::matrix<dlib::rgb_pixel> f, f_tmp, d1, d1_tmp, d2, d2_tmp;
         dlib::matrix<int16_t> horz_gradient, vert_gradient;
@@ -118,7 +119,7 @@ void load_dfd_data(
                 rgb2gray(f, tf);
                 rgb2gray(d1, td);
                 
-                t[0] = (td+256)-tf;
+                t[0] = dlib::matrix_cast<T>((td+256)-tf);
                 break;
             
             case 2:
@@ -166,7 +167,7 @@ void load_dfd_data(
                     case 2:
 						rgb2gray(f, t[0]);
 						rgb2gray(d1, t[1]);
-                        t[2] = dlib::matrix_cast<uint16_t>(dlib::abs(dlib::matrix_cast<float>(t[1])- dlib::matrix_cast<float>(t[0])));
+                        t[2] = dlib::matrix_cast<T>(dlib::abs(dlib::matrix_cast<float>(t[1])- dlib::matrix_cast<float>(t[0])));
                         break;
 
                     case 3:

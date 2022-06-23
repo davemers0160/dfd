@@ -60,7 +60,7 @@
 extern const uint32_t img_depth;
 extern const uint32_t secondary;
 std::string platform;
-std::vector<std::array<dlib::matrix<uint16_t>, img_depth>> tr_crop, te_crop;
+std::vector<std::array<dlib::matrix<uint8_t>, img_depth>> tr_crop, te_crop;
 std::vector<dlib::matrix<uint16_t>> gt_crop, gt_te_crop;
 
 std::string version;
@@ -146,8 +146,8 @@ int main(int argc, char** argv)
     std::vector<dlib::matrix<uint16_t>> gt_train, gt_test;
     dlib::matrix<uint16_t> map;
 
-    std::vector<std::array<dlib::matrix<uint16_t>, img_depth>> tr;
-    std::vector<std::array<dlib::matrix<uint16_t>, img_depth>> te;
+    std::vector<std::array<dlib::matrix<uint8_t>, img_depth>> tr;
+    std::vector<std::array<dlib::matrix<uint8_t>, img_depth>> te;
 
     std::vector<std::string> stop_codes = { "Minimum Learning Rate Reached.", "Max Training Time Reached", "Max Training Steps Reached" };
     std::vector<double> stop_criteria;
