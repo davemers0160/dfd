@@ -507,7 +507,7 @@ int main(int argc, char** argv)
         //-----------------------------------------------------------------------------
         // setup everything for the first run
         // set the size of the first vector
-        std::array<dlib::matrix<uint16_t>, img_depth> tmp;
+        std::array<dlib::matrix<uint8_t>, img_depth> tmp;
         dlib::matrix<uint16_t> gt_tmp = dlib::zeros_matrix<uint16_t>(ci.vs_size.first, ci.vs_size.second);
         for (int m = 0; m < img_depth; ++m)
         {
