@@ -134,7 +134,7 @@ int main(int argc, char** argv)
     auto stop_time = chrono::system_clock::now();
     auto elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);
 
-    std::vector<std::array<dlib::matrix<uint16_t>, img_depth>> te;
+    std::vector<std::array<dlib::matrix<uint8_t>, img_depth>> te;
     std::vector<dlib::matrix<uint16_t>> gt_test;
 
     std::pair<uint64_t, uint64_t > crop_size(32, 32);
@@ -332,7 +332,7 @@ int main(int argc, char** argv)
         //-----------------------------------------------------------------------------
         // setup everything for the first run
         // set the size of the first vector
-        std::array<dlib::matrix<uint16_t>, img_depth> tmp;
+        std::array<dlib::matrix<uint8_t>, img_depth> tmp;
         dlib::matrix<uint16_t> gt_tmp = dlib::zeros_matrix<uint16_t>(crop_size.first, crop_size.second);
         for (int m = 0; m < img_depth; ++m)
         {
@@ -345,9 +345,10 @@ int main(int argc, char** argv)
         std::vector<uint8_t> dm_ptr(crop_size.first * crop_size.second);
 
         double vs_scale = 0.1;
+        double shape_scale = 0.06;
 
         // generate an image 
-        generate_vs_scene(vs_scale, crop_size.second, crop_size.first, fp1_ptr.data(), fp2_ptr.data(), dm_ptr.data());
+        generate_vs_scene(vs_scale, shape_scale, crop_size.second, crop_size.first, fp1_ptr.data(), fp2_ptr.data(), dm_ptr.data());
 
         // convert the vector pointers to dlib::matrix
         vect2matrix(crop_size.first, crop_size.second, fp1_ptr, fp2_ptr, dm_ptr, tmp, gt_tmp);
@@ -366,7 +367,7 @@ int main(int argc, char** argv)
         for (idx = 0; idx < num_test_images; ++idx)
         {
             // generate an image 
-            generate_vs_scene(vs_scale, crop_size.second, crop_size.first, fp1_ptr.data(), fp2_ptr.data(), dm_ptr.data());
+            generate_vs_scene(vs_scale, shape_scale, crop_size.second, crop_size.first, fp1_ptr.data(), fp2_ptr.data(), dm_ptr.data());
 
             // convert the vector pointers to dlib::matrix
             vect2matrix(crop_size.first, crop_size.second, fp1_ptr, fp2_ptr, dm_ptr, tmp, gt_tmp);
