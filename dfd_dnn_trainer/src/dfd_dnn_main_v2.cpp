@@ -64,7 +64,7 @@
 extern const uint32_t img_depth;
 extern const uint32_t secondary;
 std::string platform;
-std::vector<std::array<dlib::matrix<uint16_t>, img_depth>> tr_crop, te_crop;
+std::vector<std::array<dlib::matrix<uint8_t>, img_depth>> tr_crop, te_crop;
 std::vector<dlib::matrix<uint16_t>> gt_crop, gt_te_crop;
 
 std::string version;
@@ -152,6 +152,8 @@ int main(int argc, char** argv)
     dlib::matrix<uint16_t> map;
 
     uint32_t num_channels = img_depth >> 1;
+    std::vector<std::array<dlib::matrix<uint8_t>, img_depth>> tr;
+    std::vector<std::array<dlib::matrix<uint8_t>, img_depth>> te;
 
     //std::vector<std::array<dlib::matrix<uint16_t>, img_depth>> tr;
     //std::vector<std::array<dlib::matrix<uint16_t>, img_depth>> te;

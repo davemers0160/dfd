@@ -24,10 +24,10 @@
 // This function assumes that the ground truth image size and the input image sizes do not have to be the same dimensions
 //-----------------------------------------------------------------------------
 
-template <typename net_type>
+template <typename net_type, typename T>
 dlib::matrix<double,1,6> eval_net_performance(
     net_type &net,
-    std::array<dlib::matrix<uint16_t>, img_depth> &img_in,
+    std::array<dlib::matrix<T>, img_depth> &img_in,
     dlib::matrix<uint16_t> &gt_in,
     dlib::matrix<uint16_t> &map_out, 
     std::pair<uint64_t, uint64_t> crop_size
@@ -35,7 +35,7 @@ dlib::matrix<double,1,6> eval_net_performance(
     //float dm_scale = 1.0
 )
 {
-    std::array<dlib::matrix<uint16_t>, img_depth> img_crop;
+    std::array<dlib::matrix<T>, img_depth> img_crop;
     dlib::matrix<uint16_t> gt;
     dlib::matrix<uint16_t> gt_crop;
     dlib::matrix<float> gt_cropf, dm_f;
@@ -114,10 +114,10 @@ dlib::matrix<double,1,6> eval_net_performance(
 
 //-----------------------------------------------------------------------------
 
-template <typename net_type>
+template <typename net_type, typename T>
 dlib::matrix<double, 1, 6> eval_all_net_performance(
     net_type &net,
-    std::vector<std::array<dlib::matrix<uint16_t>, img_depth>> &img_in,    
+    std::vector<std::array<dlib::matrix<T>, img_depth>> &img_in,    
     std::vector<dlib::matrix<uint16_t>> &gt_in,
     std::pair<uint64_t, uint64_t> crop_size
     //std::pair<uint32_t, uint32_t> scale
