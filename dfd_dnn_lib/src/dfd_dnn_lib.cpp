@@ -10,7 +10,7 @@
 //#include "prune_detects.h"
 
 // network header file
-#include "dfd_net_v16.h"
+#include "dfd_net_v16b.h"
 
 // dlib includes
 #include <dlib/dnn.h>
@@ -52,7 +52,7 @@ void run_net(unsigned char* image_f1, unsigned char* image_f2, unsigned int nr, 
     //dlib::matrix<dlib::rgb_pixel> img(nr, nc);
     //std::array<dlib::matrix<uint8_t>, array_depth> a_img;
 
-    std::array<dlib::matrix<uint16_t>, img_depth> img;
+    std::array<dlib::matrix<uint8_t>, img_depth> img;
     
     // get the images size and resize the t array
     //for (idx = 0; idx < img_depth; ++idx)

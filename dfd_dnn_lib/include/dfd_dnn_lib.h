@@ -1,5 +1,5 @@
-#ifndef OBJ_DET_DLL_H
-#define OBJ_DET_DLL_H
+#ifndef DFD_DNN_DLL_H_
+#define DFD_DNN_DLL_H_
 
 //#define EXTERN_C
 //#include <cstdint>
@@ -130,44 +130,5 @@ extern "C" {
 }
 #endif
 
-// ----------------------------------------------------------------------------------------
-//#ifdef __cplusplus
-//extern "C" {
-//#endif
-//    //MNIST_DLL_API void get_layer_05(struct layer_struct &data, const float* &data_params);
-//    OBJ_DLL_API void get_layer_05(layer_struct *data, const float **data_params);
-//#ifdef __cplusplus
-//}
-//#endif
-//
-//// ----------------------------------------------------------------------------------------
-//#ifdef __cplusplus
-//extern "C" {
-//#endif
-//    //MNIST_DLL_API void get_layer_08(struct layer_struct &data, const float* &data_params);
-//    OBJ_DLL_API void get_layer_08(layer_struct *data, const float **data_params);
-//#ifdef __cplusplus
-//}
-//#endif
-//
-//// ----------------------------------------------------------------------------------------
-//#ifdef __cplusplus
-//extern "C" {
-//#endif
-//    //MNIST_DLL_API void get_layer_09(struct layer_struct &data, const float* &data_params);
-//    OBJ_DLL_API void get_layer_09(layer_struct *data, const float **data_params);
-//#ifdef __cplusplus
-//}
-//#endif
-//
-//// ----------------------------------------------------------------------------------------
-//#ifdef __cplusplus
-//extern "C" {
-//#endif
-//    //MNIST_DLL_API void get_layer_12(struct layer_struct &data, const float* &data_params);
-//    OBJ_DLL_API void get_layer_12(layer_struct *data, const float **data_params);
-//#ifdef __cplusplus
-//}
-//#endif
 
-#endif  // OBJ_DET_DLL_H
+#endif  // DFD_DNN_DLL_H_
