@@ -33,16 +33,20 @@
 #include "get_cuda_devices.h"
 //#include "apply_random_noise.h"
 #include "array_image_operations.h"
+#include "dlib_matrix_ops.h"
 
 // Net Version
 // Things must go in this order since the array size is determined by the network header file
-#include "dfd_net_v16.h"
+#include "dfd_net_v16b.h"
 //#include "dfd_net_lin_v01.h"
 //#include "dfd_net_l2_v01.h"
 #include "dfd_dnn.h"
 #include "load_dfd_data.h"
 #include "eval_dfd_net_performance.h"  
 #include "image_noise_functions.h"
+#include "vect2matrix.h"
+
+#include "vs_gen_lib.h"
 
 // dlib includes
 #include <dlib/dnn.h>
@@ -127,12 +131,13 @@ int main(int argc, char** argv)
 
     std::string sdate, stime;
 
-    std::ofstream DataLogStream;
+    std::ofstream data_log_stream;
     std::string train_inputfile;
     std::string test_inputfile;
     std::string train_data_directory, test_data_directory;
     std::string data_home = "";
-    
+    std::string image_num;
+
     std::vector<std::vector<std::string>> training_file;
     std::vector<std::vector<std::string>> test_file;
     std::vector<std::pair<std::string, std::string>> tr_image_files, te_image_files;
@@ -146,8 +151,12 @@ int main(int argc, char** argv)
     std::vector<dlib::matrix<uint16_t>> gt_train, gt_test;
     dlib::matrix<uint16_t> map;
 
+    uint32_t num_channels = img_depth >> 1;
     std::vector<std::array<dlib::matrix<uint8_t>, img_depth>> tr;
     std::vector<std::array<dlib::matrix<uint8_t>, img_depth>> te;
+
+    //std::vector<std::array<dlib::matrix<uint16_t>, img_depth>> tr;
+    //std::vector<std::array<dlib::matrix<uint16_t>, img_depth>> te;
 
     std::vector<std::string> stop_codes = { "Minimum Learning Rate Reached.", "Max Training Time Reached", "Max Training Steps Reached" };
     std::vector<double> stop_criteria;
@@ -205,15 +214,15 @@ int main(int argc, char** argv)
 
     // check the input scaling factors.  if they are the same then the expansion factor for the cropper is all 8
     // otherwise the expansion factor is 4
-    if(ci.scale.first == ci.scale.second)
-        expansion_factor = 8;
-    else
-        expansion_factor = 4;
+    //if(ci.scale.first == ci.scale.second)
+    expansion_factor = 8;
+    //else
+    //    expansion_factor = 4;
 
     // modify crop sizes based on scales
     // this is done to make crop size input easier
-    ci.train_crop_sizes.first = ci.train_crop_sizes.first * ci.scale.first;
-    ci.train_crop_sizes.second = ci.train_crop_sizes.second * ci.scale.second;
+    //ci.train_crop_sizes.first = ci.train_crop_sizes.first * ci.scale.first;
+    //ci.train_crop_sizes.second = ci.train_crop_sizes.second * ci.scale.second;
 
     // check the platform
     get_platform_control();
@@ -275,17 +284,16 @@ int main(int argc, char** argv)
         logfileName = logfileName + sdate + "_" + stime + ".txt";
 
         std::cout << "Log File:             " << (output_save_location + logfileName) << std::endl << std::endl;
-        DataLogStream.open((output_save_location + logfileName), ios::out | ios::app);
+        data_log_stream.open((output_save_location + logfileName), ios::out | ios::app);
         
         // Add the date and time to the start of the log file
-        DataLogStream << "------------------------------------------------------------------" << std::endl;
-        DataLogStream << "Version: 2.0    Date: " << sdate << "    Time: " << stime << std::endl;
-        DataLogStream << "------------------------------------------------------------------" << std::endl;
+        data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
+        data_log_stream << "Version: 2.0    Date: " << sdate << "    Time: " << stime << std::endl << std::endl;
 
         std::cout << get_cuda_devices() << std::endl;
 
-        DataLogStream << get_cuda_devices();
-        DataLogStream << "------------------------------------------------------------------" << std::endl;
+        data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
+        data_log_stream << get_cuda_devices() << std::endl;
 
         ///////////////////////////////////////////////////////////////////////////////
         // Step 1: Read in the training and testing images
@@ -293,8 +301,15 @@ int main(int argc, char** argv)
         // get the "DATA_HOME" environment variable <- location of the root data folder
         //data_home = path_check(get_env_variable("DATA_HOME"));
  
-        std::cout << "Training input file:          " << train_inputfile << std::endl;
+        std::cout << "Training input file:  " << train_inputfile << std::endl;
+        std::cout << "Test input file:      " << test_inputfile << std::endl << std::endl;
+
+        data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
+        data_log_stream << "Training input file:  " << train_inputfile << std::endl;
+        data_log_stream << "Test input file:      " << test_inputfile << std::endl << std::endl;
+       
         // parse through the supplied training csv file
+/*
 #if defined(_WIN32) | defined(__WIN32__) | defined(__WIN32) | defined(_WIN64) | defined(__WIN64)
         parse_csv_file(train_inputfile, training_file);
         // the first line in this file is now the data directory
@@ -319,8 +334,8 @@ int main(int argc, char** argv)
         std::cout << "Training data directory:      " << train_data_directory << std::endl;
         std::cout << "Training image sets to parse: " << training_file.size() << std::endl;
         
-        DataLogStream << train_inputfile << std::endl;
-        DataLogStream << "Training image sets to parse: " << training_file.size() << std::endl;
+        data_log_stream << train_inputfile << std::endl;
+        data_log_stream << "Training image sets to parse: " << training_file.size() << std::endl;
 
         std::cout << "Loading training images..." << std::endl;
         
@@ -330,11 +345,12 @@ int main(int argc, char** argv)
 
         elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);
         std::cout << "Loaded " << tr.size() << " training image sets in " << elapsed_time.count() / 60 << " minutes." << std::endl << std::endl;
-
+*/
 
 //-----------------------------------------------------------------------------
         // load the test data
-        std::cout << "Test input file:          " << test_inputfile << std::endl;
+
+/*
 #if defined(_WIN32) | defined(__WIN32__) | defined(__WIN32) | defined(_WIN64) | defined(__WIN64)
         parse_csv_file(test_inputfile, test_file);
         test_data_directory = data_home + test_file[0][0];
@@ -358,10 +374,10 @@ int main(int argc, char** argv)
         std::cout << "Test data directory:      " << test_data_directory << std::endl;
         std::cout << "Test image sets to parse: " << test_file.size() << std::endl;
 
-        DataLogStream << "------------------------------------------------------------------" << std::endl;
-        DataLogStream << test_inputfile << std::endl;
-        DataLogStream << "Test image sets to parse: " << test_file.size() << std::endl;
-        DataLogStream << "------------------------------------------------------------------" << std::endl;
+        data_log_stream << "------------------------------------------------------------------" << std::endl;
+        data_log_stream << test_inputfile << std::endl;
+        data_log_stream << "Test image sets to parse: " << test_file.size() << std::endl;
+        data_log_stream << "------------------------------------------------------------------" << std::endl;
 
         std::cout << "Loading test images..." << std::endl;
 
@@ -371,11 +387,22 @@ int main(int argc, char** argv)
 
         elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);
         std::cout << "Loaded " << te.size() << " test image sets in " << elapsed_time.count() / 60 << " minutes." << std::endl << std::endl;
-               
+*/
+        uint32_t num_test_images = 50;
+
         // get the min and max depthmap values based on the training ground truth
         // this assumes that only trainable depthmap values are in the data set
-        uint16_t min_val, max_val;
-        get_gt_min_max(gt_train, min_val, max_val);
+
+        // these are statically set right now.  need to update vs_gen code to output the min/max dm values for a given scenario
+        uint16_t min_val = 0;
+        uint16_t max_val = 22;
+
+        //-----------------------------------------------------------------------------
+        // read in the blur params
+        init_vs_gen_from_file(train_inputfile.c_str());
+        //-----------------------------------------------------------------------------
+
+        //get_gt_min_max(gt_train, min_val, max_val);
 
         // do a check of the depthmap values to ensure that there are enough outputs in the  
         // network to cover the data input range
@@ -409,39 +436,43 @@ int main(int argc, char** argv)
         dfd_cropper cropper;
         cropper.set_chip_dims(ci.train_crop_sizes);
         cropper.set_seed(time(0));
-        cropper.set_scale(ci.scale);
+        //cropper.set_scale(ci.scale);
         cropper.set_expansion_factor(expansion_factor);
         //cropper.set_stats_filename((output_save_location + cropper_stats_file));
 
         std::cout << "Input Array Depth: " << img_depth << std::endl;
         std::cout << "Secondary data loading value: " << secondary << std::endl << std::endl;
-        DataLogStream << "Input Array Depth: " << img_depth << std::endl;
-        DataLogStream << "Secondary data loading value: " << secondary << std::endl;
-        DataLogStream << "------------------------------------------------------------------" << std::endl;
+        
+        data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
+        data_log_stream << "Input Array Depth: " << img_depth << std::endl;
+        data_log_stream << "Secondary data loading value: " << secondary << std::endl << std::endl;
 
-        std::cout << "Eval Crop Size: " << ci.eval_crop_sizes.first << "x" << ci.eval_crop_sizes.second << std::endl << std::endl;
-        DataLogStream << "Eval Crop Size: " << ci.eval_crop_sizes.first << "x" << ci.eval_crop_sizes.second << std::endl;
-        DataLogStream << "------------------------------------------------------------------" << std::endl;
+        std::cout << "Eval Image Size: " << ci.eval_crop_sizes.first << "x" << ci.eval_crop_sizes.second << std::endl << std::endl;
+
+        data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
+        data_log_stream << "Eval Image Size: " << ci.eval_crop_sizes.first << "x" << ci.eval_crop_sizes.second << std::endl << std::endl;
 
         std::cout << "Crop count: " << ci.crop_num << std::endl;
-        DataLogStream << "Crop count: " << ci.crop_num << std::endl;
+
+        data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
+        data_log_stream << "Crop count: " << ci.crop_num << std::endl;
 
         std::cout << cropper << std::endl;
-        DataLogStream << cropper << std::endl;
-        DataLogStream << "------------------------------------------------------------------" << std::endl;
-        
+        data_log_stream << cropper << std::endl;
+
         std::cout << trainer << std::endl;
-        DataLogStream << trainer << std::endl;
-        DataLogStream << "------------------------------------------------------------------" << std::endl;
+
+        data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
+        data_log_stream << trainer << std::endl;
 
         std::cout << dfd_net << std::endl;
 
-        DataLogStream << "Net Name: " << net_name << std::endl;
-        DataLogStream << dfd_net << std::endl;
-        DataLogStream << "------------------------------------------------------------------" << std::endl;
+        data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
+        data_log_stream << "Net Name: " << net_name << std::endl;
+        data_log_stream << dfd_net << std::endl;
 
         // write the training log header
-        DataLogStream << "step, learning rate, average loss, Train (NMAE, NRMSE, SSIM), Test (NMAE, NRMSE, SSIM)" << std::endl;
+        //data_log_stream << "step, learning rate, average loss, Train (NMAE, NRMSE, SSIM), Test (NMAE, NRMSE, SSIM)" << std::endl;
         
         ///////////////////////////////////////////////////////////////////////////////
         // Step 3: Begin the training efforts
@@ -473,12 +504,44 @@ int main(int argc, char** argv)
         dlib::matrix<double, 1, 6> train_results = dlib::zeros_matrix<double>(1, 6);
         dlib::matrix<double, 1, 6> test_results = dlib::zeros_matrix<double>(1, 6);
 
+        //-----------------------------------------------------------------------------
+        // setup everything for the first run
+        // set the size of the first vector
+        std::array<dlib::matrix<uint16_t>, img_depth> tmp;
+        dlib::matrix<uint16_t> gt_tmp = dlib::zeros_matrix<uint16_t>(ci.vs_size.first, ci.vs_size.second);
+        for (int m = 0; m < img_depth; ++m)
+        {
+            tmp[m].set_size(ci.vs_size.first, ci.vs_size.second);
+        }
+
+        // create a temporary container
+        std::vector<uint8_t> fp1_ptr(ci.vs_size.first * ci.vs_size.second * num_channels);
+        std::vector<uint8_t> fp2_ptr(ci.vs_size.first * ci.vs_size.second * num_channels);
+        std::vector<uint8_t> dm_ptr(ci.vs_size.first * ci.vs_size.second);
+
+        double vs_scale = 0.1;
+        double shape_scale = 0.06;
+
         while(stop < 0)       
         {
 
             if (trainer.get_learning_rate() >= tp.final_learning_rate)
             {
-                cropper(ci.crop_num, tr, gt_train, tr_crop, gt_crop);
+                tr_crop.clear();
+                gt_crop.clear();
+
+                for (idx = 0; idx < ci.crop_num; ++idx)
+                {
+                    // generate an image 
+                    generate_vs_scene(vs_scale, shape_scale, ci.vs_size.second, ci.vs_size.first, fp1_ptr.data(), fp2_ptr.data(), dm_ptr.data());
+
+                    // convert the vector pointers to dlib::matrix
+                    vect2matrix(ci.vs_size.first, ci.vs_size.second, fp1_ptr, fp2_ptr, dm_ptr, tmp, gt_tmp);
+                    
+                    cropper.single(tmp, gt_tmp, tr_crop, gt_crop);
+                }
+
+                
 
                 // @mem((gt_crop[0].data).data,UINT16,1,gt_crop[0].nc(), gt_crop[0].nr(),gt_crop[0].nc()*2)
                 // @mem((tr_crop[0][0].data).data,UINT16,1,tr_crop[0][0].nc(), tr_crop[0][0].nr(),tr_crop[0][0].nc()*2)
@@ -489,7 +552,7 @@ int main(int argc, char** argv)
                 {
                     // @mem((tc[0].data).data, UINT16, 1, tc[0].nc(), tc[0].nr(), tc[0].nc() * 2)
                     //apply_uniform_noise((uint8_t)0, (uint8_t)255, tc, rnd, std);
-                    apply_poisson_noise(tc, std, rnd, 0.0, 255.0);
+                    apply_poisson_noise(tc, ci.noise_std, rnd, 0.0, 255.0);
 
                     scale_intensity(tc, rnd, 0.3, 1.0);
                 }
@@ -529,9 +592,9 @@ int main(int argc, char** argv)
                 //dfd_net(tr_crop);
 
                 // start logging the results
-                DataLogStream << std::setw(6) << std::setfill('0') << one_step_calls << ", ";
-                DataLogStream << std::fixed << std::setprecision(10) << trainer.get_learning_rate() << ", ";
-                DataLogStream << std::fixed << std::setprecision(5) << trainer.get_average_loss() << ", ";
+                data_log_stream << std::setw(6) << std::setfill('0') << one_step_calls << ", ";
+                data_log_stream << std::fixed << std::setprecision(10) << trainer.get_learning_rate() << ", ";
+                data_log_stream << std::fixed << std::setprecision(5) << trainer.get_average_loss() << ", ";
 
                 std::cout << "Training Results (NMAE, NRMSE, SSIM, Var_GT, Var_DM): " << std::fixed << std::setprecision(5) << train_results(0, 0) << ", " << train_results(0, 1)
                     << ", " << train_results(0, 2) << ", " << train_results(0, 4) << ", " << train_results(0, 5) << std::endl;
@@ -539,9 +602,9 @@ int main(int argc, char** argv)
                     << ", " << test_results(0, 2) << ", " << test_results(0, 4) << ", " << test_results(0, 5) << std::endl;
                 std::cout << "------------------------------------------------------------------" << std::endl;
 
-                DataLogStream << std::fixed << std::setprecision(5) << train_results(0, 0) << ", " << train_results(0, 1) << ", "
+                data_log_stream << std::fixed << std::setprecision(5) << train_results(0, 0) << ", " << train_results(0, 1) << ", "
                     << train_results(0, 2) << ", " << train_results(0, 4) << ", " << train_results(0, 5) << ", ";
-                DataLogStream << std::fixed << std::setprecision(5) << test_results(0, 0) << ", " << test_results(0, 1) << ", "
+                data_log_stream << std::fixed << std::setprecision(5) << test_results(0, 0) << ", " << test_results(0, 1) << ", "
                     << test_results(0, 2) << ", " << test_results(0, 4) << ", " << test_results(0, 5) << std::endl;
 
                 // run a single image through to save the progress
@@ -583,63 +646,59 @@ int main(int argc, char** argv)
 //-----------------------------------------------------------------------------
         //close_gorgon();
 
-        cropper.close_cropper_stream();
-
-        te_crop.clear();
-        gt_te_crop.clear();
-
-		std::cout << std::endl << "------------------------------------------------------------------" << std::endl;
-        std::cout << "Stop Code: " << stop_codes[stop] << std::endl;
-        std::cout << "Final Average Loss: " << trainer.get_average_loss() << std::endl;
- 		std::cout << "------------------------------------------------------------------" << std::endl << std::endl;
-        
-        DataLogStream << "Stop Code: " << stop_codes[stop] << std::endl;
-        DataLogStream << "Final Average Loss: " << trainer.get_average_loss() << std::endl;
- 		DataLogStream << "------------------------------------------------------------------" << std::endl << std::endl;       
 
 //-----------------------------------------------------------------------------
 //          TRAINING STOP
 //-----------------------------------------------------------------------------
-       
         // wait for training threads to stop
         trainer.get_net();
         stop_time = chrono::system_clock::now();
 
         elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);
-        std::cout << "Training Complete.  Elapsed Time: " << elapsed_time.count() / 3600 << " hours" << std::endl;
-        DataLogStream << "Training Complete.  Elapsed Time: " << elapsed_time.count() / 3600 << " hours" << std::endl;
+
+        cropper.close_cropper_stream();
+
+		std::cout << std::endl << "------------------------------------------------------------------" << std::endl;
+        std::cout << "Stop Code:             " << stop_codes[stop] << std::endl;
+        std::cout << "Final Average Loss:    " << trainer.get_average_loss() << std::endl;
+        std::cout << "Elapsed Training Time: " << elapsed_time.count() / 3600 << " hours" << std::endl;
+ 		std::cout << "------------------------------------------------------------------" << std::endl;
+        
+        data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
+        data_log_stream << "Stop Code:             " << stop_codes[stop] << std::endl;
+        data_log_stream << "Final Average Loss:    " << trainer.get_average_loss() << std::endl;
+        data_log_stream << "Elapsed Training Time: " << elapsed_time.count() / 3600 << " hours" << std::endl << std::endl;
 
         // Save the network to disk
         dfd_net.clean();
         dlib::serialize(sync_save_location + net_name) << dfd_net;
 
+        gt_max = (uint16_t)((dlib::layer<1>(dfd_net).layer_details().num_filters() - 1));
+
         ///////////////////////////////////////////////////////////////////////////////
         // Step 4: Show the training results
         ///////////////////////////////////////////////////////////////////////////////
+        
+        std::array<dlib::matrix<uint16_t>, img_depth> test_crop;
+        dlib::matrix<double, 1, 6> tmp_results;
 
         //dfd_net_type dfd_test_net;
 
+/*
         //std::cout << std::endl << "Loading " << (sync_save_location + net_name) << std::endl;
         //dlib::deserialize(sync_save_location + net_name) >> dfd_test_net;
 
         std::cout << "Analyzing Training Results..." << std::endl;
 
-        train_results = eval_all_net_performance(dfd_net, tr, gt_train, ci.eval_crop_sizes, ci.scale);
+        train_results = eval_all_net_performance(dfd_net, tr, gt_train, ci.eval_crop_sizes);
         std::cout << "------------------------------------------------------------------" << std::endl;
         std::cout << "NMAE, NRMSE, SSIM, Var_GT, Var_DM: " << std::fixed << std::setprecision(6) << train_results(0, 0) << ", " << train_results(0, 1) << ", " << train_results(0, 2) << ", " << train_results(0, 4) << ", " << train_results(0, 5) << std::endl;
 
-        DataLogStream << "------------------------------------------------------------------" << std::endl;
-        DataLogStream << "Training Image Analysis Results:" <<std::endl;
-        DataLogStream << "NMAE, NRMSE, SSIM, Var_GT, Var_DM: " << std::fixed << std::setprecision(6) << train_results(0, 0) << ", " << train_results(0, 1) << ", " << train_results(0, 2) << ", " << train_results(0, 4) << ", " << train_results(0, 5) << std::endl;
-        
-        std::array<dlib::matrix<uint16_t>, img_depth> test_crop;
-        dlib::matrix<uint16_t> map;
-        dlib::matrix<double, 1, 6> tmp_results;
+        data_log_stream << "------------------------------------------------------------------" << std::endl;
+        data_log_stream << "Training Image Analysis Results:" <<std::endl;
+        data_log_stream << "NMAE, NRMSE, SSIM, Var_GT, Var_DM: " << std::fixed << std::setprecision(6) << train_results(0, 0) << ", " << train_results(0, 1) << ", " << train_results(0, 2) << ", " << train_results(0, 4) << ", " << train_results(0, 5) << std::endl;
 
-        gt_max = (uint16_t)((dlib::layer<1>(dfd_net).layer_details().num_filters() - 1));
-        
 #ifndef DLIB_NO_GUI_SUPPORT
-
 
         dlib::image_window win0;
         dlib::image_window win1;
@@ -653,7 +712,7 @@ int main(int argc, char** argv)
             //center_cropper(tr[idx], test_crop, crop_sizes[1].second * scale.first, crop_sizes[1].first * scale.second);
 
             start_time = chrono::system_clock::now();
-            tmp_results = eval_net_performance(dfd_net, tr[idx], gt_train[idx], map, ci.eval_crop_sizes, ci.scale);
+            tmp_results = eval_net_performance(dfd_net, tr[idx], gt_train[idx], map, ci.eval_crop_sizes);
             //dlib::matrix<uint16_t> map = dfd_test_net(test_crop);
             stop_time = chrono::system_clock::now();
             
@@ -682,81 +741,192 @@ int main(int argc, char** argv)
         }
 
 #endif
+*/
 
         ///////////////////////////////////////////////////////////////////////////////
         // Step 5: Run through test images
         ///////////////////////////////////////////////////////////////////////////////
 
         std::cout << std::endl << "Analyzing Test Results..." << std::endl;
+        //test_results = eval_all_net_performance(dfd_net, te, gt_test, ci.eval_crop_sizes);
+        //std::cout << "------------------------------------------------------------------" << std::endl;
+        //std::cout << "NMAE, NRMSE, SSIM, Var_GT, Var_DM: " << std::fixed << std::setprecision(6) << test_results(0, 0) << ", " << test_results(0, 1) << ", " << test_results(0, 2) << ", " << test_results(0, 4) << ", " << test_results(0, 5) << std::endl;
 
-        test_results = eval_all_net_performance(dfd_net, te, gt_test, ci.eval_crop_sizes, ci.scale);
-        std::cout << "------------------------------------------------------------------" << std::endl;
-        std::cout << "NMAE, NRMSE, SSIM, Var_GT, Var_DM: " << std::fixed << std::setprecision(6) << test_results(0, 0) << ", " << test_results(0, 1) << ", " << test_results(0, 2) << ", " << test_results(0, 4) << ", " << test_results(0, 5) << std::endl;
-
-        DataLogStream << "------------------------------------------------------------------" << std::endl;
-        DataLogStream << "Test Image Analysis Results:" <<std::endl;
-        DataLogStream << "NMAE, NRMSE, SSIM, Var_GT, Var_DM: " << std::fixed << std::setprecision(6) << test_results(0, 0) << ", " << test_results(0, 1) << ", " << test_results(0, 2) << ", " << test_results(0, 4) << ", " << test_results(0, 5) << std::endl;
+        //data_log_stream << "------------------------------------------------------------------" << std::endl;
+        //data_log_stream << "Test Image Analysis Results:" <<std::endl;
+        //data_log_stream << "NMAE, NRMSE, SSIM, Var_GT, Var_DM: " << std::fixed << std::setprecision(6) << test_results(0, 0) << ", " << test_results(0, 1) << ", " << test_results(0, 2) << ", " << test_results(0, 4) << ", " << test_results(0, 5) << std::endl;
  
-        DataLogStream << "------------------------------------------------------------------" << std::endl;
-        DataLogStream << std::setw(5) << std::setfill('0') << trainer.get_train_one_step_calls() << ", ";
-        DataLogStream << std::fixed << std::setprecision(10) << trainer.get_learning_rate() << ", ";
-        DataLogStream << std::fixed << std::setprecision(6) << trainer.get_average_loss() << ", ";
+        //data_log_stream << "------------------------------------------------------------------" << std::endl;
+        //data_log_stream << std::setw(5) << std::setfill('0') << trainer.get_train_one_step_calls() << ", ";
+        //data_log_stream << std::fixed << std::setprecision(10) << trainer.get_learning_rate() << ", ";
+        //data_log_stream << std::fixed << std::setprecision(6) << trainer.get_average_loss() << ", ";
 
-        DataLogStream << std::fixed << std::setprecision(6) << train_results(0, 0) << ", " << train_results(0, 1) << ", " << train_results(0, 2) << ", " << train_results(0, 4) << ", " << train_results(0, 5) << ", ";
-        DataLogStream << std::fixed << std::setprecision(6) << test_results(0, 0) << ", " << test_results(0, 1) << ", " << test_results(0, 2) << ", " << test_results(0, 4) << ", " << test_results(0, 5) << std::endl;
-        DataLogStream << "------------------------------------------------------------------" << std::endl;
+        //data_log_stream << std::fixed << std::setprecision(6) << train_results(0, 0) << ", " << train_results(0, 1) << ", " << train_results(0, 2) << ", " << train_results(0, 4) << ", " << train_results(0, 5) << ", ";
+        //data_log_stream << std::fixed << std::setprecision(6) << test_results(0, 0) << ", " << test_results(0, 1) << ", " << test_results(0, 2) << ", " << test_results(0, 4) << ", " << test_results(0, 5) << std::endl;
+        //data_log_stream << "------------------------------------------------------------------" << std::endl;
 
+        dlib::matrix<double> cm = dlib::zeros_matrix<double>(gt_max + 1, gt_max + 1);
 
 #ifndef DLIB_NO_GUI_SUPPORT
 
-        std::cout << "Image Count: " << te.size() << std::endl;;
+        dlib::image_window win0;
+        dlib::image_window win1;
+        //dlib::image_window win2;
 
-        for (idx = 0; idx < te.size(); ++idx)
+        dlib::matrix<dlib::rgb_pixel> dm_montage, img_montage;
+        dlib::matrix<dlib::rgb_pixel> rgb_img1, rgb_img2;
+
+#endif
+        double nmae_accum = 0.0;
+        double nrmse_accum = 0.0;
+        double ssim_accum = 0.0;
+        double var_gt_accum = 0.0;
+        double var_dm_accum = 0.0;
+        double silog_accum = 0.0;
+
+        // resize the vector containers for the eval crop size
+        fp1_ptr.resize(ci.eval_crop_sizes.first * ci.eval_crop_sizes.second * num_channels);
+        fp2_ptr.resize(ci.eval_crop_sizes.first * ci.eval_crop_sizes.second * num_channels);
+        dm_ptr.resize(ci.eval_crop_sizes.first * ci.eval_crop_sizes.second);
+
+        //set the size of the dlib::mtrix objects
+        gt_tmp.set_size(ci.eval_crop_sizes.first, ci.eval_crop_sizes.second);
+        for (int m = 0; m < img_depth; ++m)
         {
-            //center_cropper(te[idx], test_crop, crop_sizes[1].second * scale.first, crop_sizes[1].first * scale.second);
+            tmp[m].set_size(ci.eval_crop_sizes.first, ci.eval_crop_sizes.second);
+        }
+
+        std::cout << "Image Count: " << num_test_images << std::endl << std::endl;
+
+        std::cout << "Image #, Elapsed Time, NMAE, NRMSE, SSIM" << std::endl;
+        shape_scale = 0.180;
+
+        for (idx = 0; idx < num_test_images; ++idx)
+        {
+            // generate an image 
+            generate_vs_scene(vs_scale, shape_scale, ci.eval_crop_sizes.second, ci.eval_crop_sizes.first, fp1_ptr.data(), fp2_ptr.data(), dm_ptr.data());
+
+            // convert the vector pointers to dlib::matrix
+            vect2matrix(ci.eval_crop_sizes.first, ci.eval_crop_sizes.second, fp1_ptr, fp2_ptr, dm_ptr, tmp, gt_tmp);
+
+            // add noise
+            apply_poisson_noise(tmp, ci.noise_std, rnd, 0.0, 255.0);
 
             start_time = chrono::system_clock::now();
-            tmp_results = eval_net_performance(dfd_net, te[idx], gt_test[idx], map, ci.eval_crop_sizes, ci.scale);
-            //dlib::matrix<uint16_t> map = dfd_test_net(test_crop);
+            tmp_results = eval_net_performance(dfd_net, tmp, gt_tmp, map, ci.eval_crop_sizes);
             stop_time = chrono::system_clock::now();
+
+            elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);
+
+            // fill in the confusion matrix for the range of depthmap values
+            for (uint32_t r = 0; r < map.nr(); ++r)
+            {
+                for (uint32_t c = 0; c < map.nc(); ++c)
+                {
+                    cm(gt_tmp(r, c), map(r, c)) += 1.0;
+                }
+            }
+
+#ifndef DLIB_NO_GUI_SUPPORT
+
+            // create a depthmap version in RGB 
+            dlib::matrix<dlib::rgb_pixel> dm_img = mat_to_rgbjetmat(dlib::matrix_cast<float>(map), 0.0, (float)gt_max);
+            dlib::matrix<dlib::rgb_pixel> gt_img = mat_to_rgbjetmat(dlib::matrix_cast<float>(gt_tmp), 0.0, (float)gt_max);
+
+            image_num = num2str(idx, "%05d");
 
             if(img_depth >= 3)
             {
-                dlib::matrix<dlib::rgb_pixel> rgb_img;
-                merge_channels(te[idx], rgb_img, 0);
+                merge_channels(tmp, rgb_img1, 0);
+                merge_channels(tmp, rgb_img2, num_channels);
 
+                img_montage.set_size(rgb_img1.nr(), rgb_img1.nc() * 2);
+                dlib::set_subm(img_montage, 0, 0, rgb_img1.nr(), rgb_img1.nc()) = rgb_img1;
+                dlib::set_subm(img_montage, 0, rgb_img1.nc(), rgb_img1.nr(), rgb_img1.nc()) = rgb_img2;
                 win0.clear_overlay();
-                win0.set_image(rgb_img);
-                win0.set_title("Input Image");
+                win0.set_image(img_montage);
+                win0.set_title("Focus 1 & Focus 2 Images");
 
+                dm_montage.set_size(gt_img.nr(), gt_img.nc() * 2);
+                dlib::set_subm(dm_montage, 0, 0, gt_img.nr(), gt_img.nc()) = gt_img;
+                dlib::set_subm(dm_montage, 0, gt_img.nc(), gt_img.nr(), gt_img.nc()) = dm_img;
                 win1.clear_overlay();
-                win1.set_image(mat_to_rgbjetmat(dlib::matrix_cast<float>(gt_test[idx]),0.0,(float)gt_max));
-                win1.set_title("Groundtruth Depthmap");
-
-                win2.clear_overlay();
-                win2.set_image(mat_to_rgbjetmat(dlib::matrix_cast<float>(map),0.0,(float)gt_max));
-                win2.set_title("DFD DNN Depthmap");
+                win1.set_image(dm_montage);
+                win1.set_title("Image " + image_num + ": Groundtruth & DFD Depthmaps");
             }
-            
-            elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);
-            std::cout << "Image Crop #" << std::setw(5) << std::setfill('0') << idx << ": Elapsed Time: " << elapsed_time.count();
-            std::cout << ", " << tmp_results(0,0) << ", " << tmp_results(0,1) << ", " << tmp_results(0,2) << std::endl;
-
-        }
-
-        win0.close_window();
-        win1.close_window();
-        win2.close_window();
 
 #endif
 
-        DataLogStream << std::endl;
-        DataLogStream.close();
+            std::cout << "Image Crop #" << std::setw(5) << std::setfill('0') << idx << ": Elapsed Time: " << std::fixed << std::setprecision(6);
+            std::cout << elapsed_time.count() << ", " << tmp_results(0,0) << ", " << tmp_results(0,1) << ", " << tmp_results(0,2) << std::endl;
+
+            nmae_accum += tmp_results(0, 0);
+            nrmse_accum += tmp_results(0, 1);
+            ssim_accum += tmp_results(0, 2);
+            silog_accum += tmp_results(0, 3);
+            var_gt_accum += tmp_results(0, 4);
+            var_dm_accum += tmp_results(0, 5);
+
+        }
+
+        nmae_accum = nmae_accum / (double)num_test_images;
+        nrmse_accum = nrmse_accum / (double)num_test_images;
+        ssim_accum = ssim_accum / (double)num_test_images;
+        silog_accum = silog_accum / (double)num_test_images;
+        var_gt_accum = var_gt_accum / (double)num_test_images;
+        var_dm_accum = var_dm_accum / (double)num_test_images;
+
+        data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
+        data_log_stream << "#Test Image Analysis Results (Average NMAE, NRMSE, SSIM, Var_GT, Var_DM):" <<std::endl;
+        data_log_stream << std::fixed << std::setprecision(6) << nmae_accum << ", " << nrmse_accum << ", " << ssim_accum << ", " << var_gt_accum << ", " << var_dm_accum << std::endl << std::endl;
+
+        // calculate the confusion matrix errors for each of the depthmap values
+        dlib::matrix<double> cm_sum = dlib::sum_cols(cm);
+        dlib::matrix<double> cm_diag = dlib::diag(cm);
+        dlib::matrix<double> cm_error(1, gt_max + 1);
+
+        for (idx = 0; idx < gt_max + 1; ++idx)
+        {
+            if (cm_sum(idx) == 0)
+                cm_error(idx) = 0.0;
+            else
+                cm_error(idx) = 1.0 - cm_diag(idx) / cm_sum(idx);
+        }
+
+        // just save everything for easy copying
+        std::cout << std::endl << "#------------------------------------------------------------------------------" << std::endl;
+        std::cout << "# Confussion Matrix:" << std::endl;
+        std::cout << std::setfill(' ');
+        std::cout << fixed_width_mat< dlib::matrix<uint64_t> >(dlib::matrix_cast<uint64_t>(cm), 7) << std::endl;
+
+        data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
+        data_log_stream << "# Confussion Matrix:" << std::endl;
+//        data_log_stream << std::setw(7) << std::setfill(' ') << std::fixed << std::setprecision(0) << dlib::csv << dlib::matrix_cast<uint64_t>(cm) << std::endl;
+        data_log_stream << fixed_width_mat< dlib::matrix<uint64_t> >(dlib::matrix_cast<uint64_t>(cm), 7) << std::endl;
+
+        std::cout << "#------------------------------------------------------------------------------" << std::endl;
+        std::cout << "# Depthmap Error:" << std::endl;
+        std::cout << std::fixed << std::setprecision(6) << dlib::csv << cm_error << std::endl;
+
+        data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
+        data_log_stream << "# Depthmap Error:" << std::endl;
+        data_log_stream << std::fixed << std::setprecision(6) << dlib::csv << cm_error << std::endl;
+
+#ifndef DLIB_NO_GUI_SUPPORT
+
+        win0.close_window();
+        win1.close_window();
+        //win2.close_window();
+
+#endif
+
+        data_log_stream << std::endl;
+        data_log_stream.close();
 
         std::cout << "End of Program." << std::endl;
 
     #if defined(_WIN32) | defined(__WIN32__) | defined(__WIN32) | defined(_WIN64) | defined(__WIN64)
-        Beep(500, 1000);
+        //Beep(500, 1000);
         std::cout << "Press Enter to Close" << std::endl;
         std::cin.ignore();
     #endif
@@ -766,10 +936,10 @@ int main(int argc, char** argv)
     {
         std::cout << e.what() << std::endl;
 
-        DataLogStream << "------------------------------------------------------------------" << std::endl;
-        DataLogStream << e.what() << std::endl;
-        DataLogStream << "------------------------------------------------------------------" << std::endl;
-        DataLogStream.close();
+        data_log_stream << "------------------------------------------------------------------" << std::endl;
+        data_log_stream << e.what() << std::endl;
+        data_log_stream << "------------------------------------------------------------------" << std::endl;
+        data_log_stream.close();
 
         if(HPC == 0)
         {            
