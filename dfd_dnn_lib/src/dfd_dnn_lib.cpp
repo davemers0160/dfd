@@ -5,12 +5,10 @@
 #include <vector>
 
 // Custom includes
-//#include "file_ops.h"
 #include "dfd_dnn_lib.h"
-//#include "prune_detects.h"
 
 // network header file
-#include "dfd_net_v16b.h"
+#include "dfd_net_v16a.h"
 
 // dlib includes
 #include <dlib/dnn.h>
@@ -20,11 +18,6 @@
 //----------------------------------------------------------------------------------
 // library internal state variables:
 adfd_net_type dfd_net;
-// double pyr_scale;
-// unsigned long outer_padding;
-// unsigned long padding;
-// std::vector<std::string> class_names;
-// std::vector<dlib::rgb_pixel> class_color;
 
 //----------------------------------------------------------------------------------
 void init_net(const char *net_name, unsigned int *num_classes)
@@ -33,9 +26,13 @@ void init_net(const char *net_name, unsigned int *num_classes)
 
     dlib::cuda::set_device(gpu);
 
+    std::cout << "net weights file: " << std::string(net_name) << std::endl;
+
     dlib::deserialize(net_name) >> dfd_net;
 
     *num_classes = (uint32_t)(dlib::layer<1>(dfd_net).layer_details().num_filters() - 1);
+
+    std::cout << "num classes: " << *num_classes << std::endl;
 
 }   // end of init_net
 
@@ -49,18 +46,7 @@ void run_net(unsigned char* image_f1, unsigned char* image_f2, unsigned int nr, 
     std::string label;
     dlib::rgb_pixel p;
     
-    //dlib::matrix<dlib::rgb_pixel> img(nr, nc);
-    //std::array<dlib::matrix<uint8_t>, array_depth> a_img;
-
     std::array<dlib::matrix<uint8_t>, img_depth> img;
-    
-    // get the images size and resize the t array
-    //for (idx = 0; idx < img_depth; ++idx)
-    //{
-    //    img[idx].set_size(nr, nc);
-    //}
-    
-    //uint64_t size = (uint64_t)nr * (uint64_t)nc;
 
     try 
     {
@@ -87,9 +73,6 @@ void run_net(unsigned char* image_f1, unsigned char* image_f2, unsigned int nr, 
         }
 
         dlib::matrix<uint16_t> dm = dfd_net(img);
-
-
-        //det_img = new unsigned char[tmp_img.nr() * tmp_img.nc() * 3L];
 
         idx = 0;
         for (r = 0; r < nr; ++r)
