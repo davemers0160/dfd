@@ -80,8 +80,9 @@ int main(int argc, char** argv)
     std::string input_image_montage = "DfD Input Images";
     std::string depthmap_images = "Depthmap";
 
-    cv::Mat montage;
+    cv::Mat montage, dm_montage;
     cv::Mat img_f1, img_f2, dm;
+    cv::Mat gt;
 
     std::vector<std::vector<std::string>> test_file;
     std::vector<std::pair<std::string, std::string>> image_files;
@@ -154,7 +155,7 @@ int main(int argc, char** argv)
         ///////////////////////////////////////////////////////////////////////////////
         //data_home = path_check(get_env_variable("DATA_HOME"));
 
-       parse_filename = argv[1];
+        parse_filename = argv[1];
         
         // parse through the supplied input file
         parse_dfd_analysis_file(parse_filename, test_inputfile, net_name, results_name, output_save_location, crop_size, scale);
@@ -296,26 +297,32 @@ int main(int argc, char** argv)
             //}
             img_f1 = cv::imread(data_directory + test_file[idx][0], cv::IMREAD_COLOR);
             img_f2 = cv::imread(data_directory + test_file[idx][1], cv::IMREAD_COLOR);
-            dm = cv::Mat::zeros(crop_size.first, crop_size.second, CV_16UC1);
-
+            gt = cv::imread(data_directory + test_file[idx][2], cv::IMREAD_GRAYSCALE);
 
             // crop image
+            img_f1 = img_f1(cr).clone();
+            img_f2 = img_f2(cr).clone();
+            gt = gt(cr);
 
-            img_f1 = img_f1(cr);
-            img_f2 - img_f2(cr);
+            dm = cv::Mat::zeros(img_f1.rows, img_f1.cols, CV_16UC1);
 
             cv::hconcat(img_f1, img_f2, montage);
 
             // time and analyze the results
             start_time = chrono::system_clock::now(); 
-            run_net(img_f1.ptr<unsigned char>(0), img_f2.ptr<unsigned char>(0), (unsigned int)crop_size.first, (unsigned int)crop_size.second, dm.ptr<unsigned short>(0));
+            run_net(img_f1.ptr<unsigned char>(0), img_f2.ptr<unsigned char>(0), (unsigned int)img_f1.rows, (unsigned int)img_f1.cols, dm.ptr<unsigned short>(0));
             stop_time = chrono::system_clock::now();
 
             elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);
             std::cout << "Depthmap generation completed in: " << elapsed_time.count() << " seconds." << std::endl;
 
+            dm.convertTo(dm, CV_8UC1, 10);
+
+
+            cv::hconcat(gt*10, dm, dm_montage);
+
             cv::imshow(input_image_montage, montage);
-            cv::imshow(depthmap_images, dm*10);
+            cv::imshow(depthmap_images, dm_montage);
             cv::waitKey(10);
 
             //std::cout << "Press Enter to continue..." << std::endl;
@@ -331,19 +338,18 @@ int main(int argc, char** argv)
 
         //std::cin.ignore();
 
+        cv::destroyAllWindows();
+
     }
     catch (std::exception& e)
     {
+        std::cout << "Error:" << std::endl;
         std::cout << e.what() << std::endl;
-
-        //data_log_stream << e.what() << std::endl;
-        //data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
-
-        //data_log_stream.close();
-        //dm_results_stream.close();
 
         std::cout << "Press Enter to close..." << std::endl;
         std::cin.ignore();
+
+        cv::destroyAllWindows();
 
     }
     return 0;
