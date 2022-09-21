@@ -37,7 +37,7 @@
 
 // Net Version
 // Things must go in this order since the array size is determined by the network header file
-#include "dfd_net_v16b.h"
+#include "dfd_net_v16a.h"
 //#include "dfd_net_lin_v01.h"
 //#include "dfd_net_l2_v01.h"
 #include "dfd_dnn.h"
