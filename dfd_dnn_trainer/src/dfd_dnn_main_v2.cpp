@@ -519,8 +519,8 @@ int main(int argc, char** argv)
         std::vector<uint8_t> fp2_ptr(ci.vs_size.first * ci.vs_size.second * num_channels);
         std::vector<uint8_t> dm_ptr(ci.vs_size.first * ci.vs_size.second);
 
-        double vs_scale = 0.1;
-        double shape_scale = 0.06;
+        //double vs_scale = 0.1;
+        //double shape_scale = 0.06;
 
         while(stop < 0)       
         {
@@ -533,7 +533,7 @@ int main(int argc, char** argv)
                 for (idx = 0; idx < ci.crop_num; ++idx)
                 {
                     // generate an image 
-                    generate_vs_scene(vs_scale, shape_scale, ci.vs_size.second, ci.vs_size.first, fp1_ptr.data(), fp2_ptr.data(), dm_ptr.data());
+                    generate_vs_scene(ci.vs_size.second, ci.vs_size.first, fp1_ptr.data(), fp2_ptr.data(), dm_ptr.data());
 
                     // convert the vector pointers to dlib::matrix
                     vect2matrix(ci.vs_size.first, ci.vs_size.second, fp1_ptr, fp2_ptr, dm_ptr, tmp, gt_tmp);
@@ -799,12 +799,13 @@ int main(int argc, char** argv)
         std::cout << "Image Count: " << num_test_images << std::endl << std::endl;
 
         std::cout << "Image #, Elapsed Time, NMAE, NRMSE, SSIM" << std::endl;
-        shape_scale = 0.180;
+        set_vs_shape_scale(0.180);
+
 
         for (idx = 0; idx < num_test_images; ++idx)
         {
             // generate an image 
-            generate_vs_scene(vs_scale, shape_scale, ci.eval_crop_sizes.second, ci.eval_crop_sizes.first, fp1_ptr.data(), fp2_ptr.data(), dm_ptr.data());
+            generate_vs_scene(ci.eval_crop_sizes.second, ci.eval_crop_sizes.first, fp1_ptr.data(), fp2_ptr.data(), dm_ptr.data());
 
             // convert the vector pointers to dlib::matrix
             vect2matrix(ci.eval_crop_sizes.first, ci.eval_crop_sizes.second, fp1_ptr, fp2_ptr, dm_ptr, tmp, gt_tmp);
