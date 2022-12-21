@@ -1,8 +1,12 @@
 #ifndef DFD_DNN_H_
 #define DFD_DNN_H_
 
+#include "ryml_all.hpp"
+
 #include <cstdint>
+#include <cassert>
 #include <utility>
+#include <vector>
 
 #include "file_parser.h"
 
@@ -42,159 +46,101 @@ typedef struct crop_info {
 
 // ----------------------------------------------------------------------------------------
 
-void parse_dnn_data_file(std::string parseFilename, 
+void parse_dnn_data_file(std::string param_filename,
     std::string &version, 
     std::vector<double> &stop_criteria, 
     training_params& tp,
     std::string &training_file,
     std::string &test_file, 
     crop_info& ci,
-    //uint64_t &num_crops, 
-    //std::vector<std::pair<uint64_t, uint64_t>> &crop_sizes, 
-    //std::pair<uint32_t, uint32_t> &scale, 
     std::array<float, img_depth> &avg_color,
     std::vector<uint32_t> &filter_num
 )
 {
     /*
-    # Version 3.1
+    # file format version: 4.0
     # The file is organized in the following manner:
-    # Version (std::string): version name for named svaing of various files
-    # Stopping Criteria (double, double) [stop time (hrs), max one step]
+    # version (std::string): version name for named saving of various files
+    # stopping criteria: duration (double), training steps (double)
+    # training parameters: initial_learning_rate (double), final_learnig_rate (double), shrink_factor (double), steps_wo_progress (uint32_t)
     # training_file (std::string): This file contains a list of images and labels used for training
     # test_file (std::string): This file contains a list of images and labels used for testing
-    # crop_num (uint64_t): The number of crops to use when using a random cropper
-    # crop_size (uint64_t, uint64_t): This is the height and width of the crop size
-    # filter_num (uint64_t...): This is the number of filters per layer.  Should be a comma separated list, eg. 10,20,30
+    # crop info: Number of crops (uint64_t), train_crop_size (h,w) (uint64_t,uint64_t), eval_crop_size (h,w) (uint64_t,uint64_t), 
+    #            virtual scene patch size (h,w) (uint64_t,uint64_t), noise std (double)
+    # average colors per channel: vector of average color values (float)
+    # filter_num (uint32_t...): This is the number of filters per layer.  Should be a comma separated list, eg. 10,20,30
     #             if the list does not account for the entire network then the code only uses what is available
     #             and leaves the remaining filter number whatever the default value was.  The order of the filters
     #             goes from outer most to the inner most layer.
     */
 
-    std::vector<std::vector<std::string>> params;
-    parse_csv_file(parseFilename, params);
+    uint32_t idx;
+    double duration, steps;
+    uint64_t h, w;
+    std::vector <float> average_colors;
 
-    for (uint64_t idx = 0; idx<params.size(); ++idx)
+    try {
+        std::ifstream tmp_stream(param_filename);
+        std::stringstream buffer;
+        buffer << tmp_stream.rdbuf();
+        std::string contents = buffer.str();
+        tmp_stream.close();
+
+        //std::cout << contents << std::endl;
+
+        ryml::Tree config = ryml::parse_in_arena(ryml::to_csubstr(contents));
+
+        // version
+        config["version"] >> version;
+
+        // stopping criteria: duration, training steps
+        ryml::NodeRef stop_criteria_node = config["stop_criteria"];
+        stop_criteria_node["hours"] >> duration;
+        stop_criteria_node["steps"] >> steps;
+        stop_criteria.push_back(duration);
+        stop_criteria.push_back(steps);
+
+        // training parameters: initial_learning_rate, final_learnig_rate, shrink_factor, steps_wo_progress
+        ryml::NodeRef training_parameters = config["training_parameters"];
+        training_parameters["initial_learning_rate"] >> tp.intial_learning_rate;
+        training_parameters["final_learning_rate"] >> tp.final_learning_rate;
+        training_parameters["shrink_factor"] >> tp.learning_rate_shrink_factor;
+        training_parameters["steps_wo_progress"] >> tp.steps_wo_progess;
+
+        // Training/Testing input files
+        config["train_file"] >> training_file;
+        config["test_file"] >> test_file;
+
+        // Crop Info: Number of crops, train_crop_size (h,w), eval_crop_size (h,w), virtual scene patch size (h,w), noise std
+        ryml::NodeRef crop_info_node = config["crop_info"];
+        crop_info_node["num_crops"] >> ci.crop_num;
+        crop_info_node["crop_height"] >> h;
+        crop_info_node["crop_width"] >> w;
+        ci.train_crop_sizes = std::make_pair(h, w);
+        crop_info_node["eval_height"] >> h;
+        crop_info_node["eval_width"] >> w;
+        ci.eval_crop_sizes = std::make_pair(h, w);
+        crop_info_node["vs_patch_height"] >> h;
+        crop_info_node["vs_patch_width"] >> w;
+        ci.vs_size = std::make_pair(h, w);
+        crop_info_node["noise_std"] >> ci.noise_std;
+
+        // average colors per channel
+        config["average_colors"] >> average_colors; //avg_color;
+        assert(average_colors.size() == avg_color.size());
+        for (idx = 0; idx < avg_color.size(); ++idx)
+            avg_color[idx] = average_colors[idx];
+
+
+        // number of filters per layer
+        filter_num.clear();
+        config["filter_num"] >> filter_num;
+
+    }
+    catch (std::exception& e)
     {
-        switch (idx)
-        {
-
-            // get the version
-            case 0:
-                version = params[idx][0];
-                break;
-
-            // get the gpu(s) to target
-            //case 1:
-            //    try {
-            //        gpu.clear();
-            //        for (uint64_t jdx = 0; jdx < params[idx].size(); ++jdx)
-            //        {
-            //            gpu.push_back(stoi(params[idx][jdx]));
-            //        }
-            //    }
-            //    catch (std::exception &e)
-            //    {
-            //        gpu.clear();
-            //        gpu.push_back(0);
-            //        std::cout << e.what() << std::endl;
-            //        std::cout << "Error getting the GPU(s) to target.  Setting the targeted GPU to: 0" << std::endl;
-            //    }
-            //    break;
-
-            // get the stopping criteria
-            case 1:
-                try {
-                    stop_criteria.clear();
-                    for (uint64_t jdx = 0; jdx<params[idx].size(); ++jdx)
-                    {
-                        stop_criteria.push_back(stod(params[idx][jdx]));
-                    }
-                }
-                catch (std::exception &e) {
-                    stop_criteria.clear();
-                    stop_criteria.push_back(160.0);
-                    stop_criteria.push_back(250000.0);
-                    std::cout << e.what() << std::endl;
-                    std::cout << "Error getting stopping criteria.  Setting values to default." << std::endl;
-                }
-                break;
-
-            // get the training parameters
-            case 2:
-                try {
-                    tp = training_params(stod(params[idx][0]), stod(params[idx][1]), stod(params[idx][2]), stol(params[idx][3]));
-                }
-                catch (std::exception & e) {
-                    std::cout << e.what() << std::endl;
-                    std::cout << "Using default training parameters..." << std::endl;
-                    tp = training_params(0.001, 0.000001, 0.1, 2500);
-                }
-                break;
-
-            // get the training input file
-            case 3:
-                training_file = params[idx][0];
-                break;
-
-            // get the test input file
-            case 4:
-                test_file = params[idx][0];
-                break;
-
-            // get the crop info
-            case 5:
-                try {
-                    ci = crop_info(stol(params[idx][0]), 
-                        std::make_pair(stol(params[idx][1]), stol(params[idx][2])), 
-                        std::make_pair(stol(params[idx][3]), stol(params[idx][4])),
-                        std::make_pair(stol(params[idx][5]), stol(params[idx][6])),
-                        std::stod(params[idx][7]));
-                }
-                catch (std::exception & e) {
-                    std::cout << e.what() << std::endl;
-                    std::cout << "Setting crop-info to defalut values..." << std::endl;
-                    ci = crop_info(40, std::make_pair(32, 32), std::make_pair(352, 352), std::make_pair(64,64), 3.0);
-                }
-                break;
-
-            // get the average colors for the dataset
-            case 6:
-                try {
-                    for (int jdx = 0; jdx < img_depth; ++jdx)
-                    {
-                        avg_color[jdx] = std::stof(params[idx][jdx]);
-                    }
-                }
-                catch (std::exception & e) {
-                    avg_color.fill(128);
-                    std::cout << e.what() << std::endl;
-                    std::cout << "Error getting average color values.  Setting values to 128." << std::endl;
-                }
-                break;
-
-            // get the number of conv filters for each layer
-            case 7:
-                try {
-                    filter_num.clear();
-                    for (int jdx = 0; jdx<params[idx].size(); ++jdx)
-                    {
-                        filter_num.push_back(stol(params[idx][jdx]));
-                    }
-                }
-                catch (std::exception &e) {
-                    filter_num.clear();
-                    std::cout << e.what() << std::endl;
-                    std::cout << "Error getting filter numbers.  No values passed on." << std::endl;
-                }
-                break;
-
-            default:
-                break;
-
-        }   // end of switch
-
-    }   // end of for
+        throw std::runtime_error("Error parsing input file: " + std::string(e.what()));
+    }
 
 }   // end of parse_dnn_data_file
 
