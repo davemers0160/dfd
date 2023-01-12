@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-#  Root CMake file for DfD_DNN Project
+#  Root CMake file for DfD_DNN Analysis Project
 # ----------------------------------------------------------------------------
 #
 # Example CMake build line for windows & VS2015
@@ -34,33 +34,55 @@ string(SUBSTRING ${PROJECT_SOURCE_DIR} 0 ${INDEX} PR_ROOT)
 # Build Options
 option(USE_AVX_INSTRUCTIONS  "Compile your program with AVX instructions"  ON)
 
-if(${PLATFORM} STREQUAL "Laptop")
-    set(COMMON_ROOT "D:/Common")
-    set(DLIB_CONTRIB "D:/Projects/dlib-contrib")
-    set(VS_GEN_ROOT "D:/Projects/vs_gen")
-    set(VS_GEN_LIB "${VS_GEN_ROOT}/build/Release/vs_gen.lib")
-    include(D:/dlib-19.22/dlib/cmake)
-elseif(${PLATFORM} STREQUAL "MainGear")
-    set(_ECLIPSE_VERSION "3.8")
-    set(COMMON_ROOT "~/Projects/Common")
-    set(DLIB_CONTRIB "~/Projects/dlib-contrib")
-    set(VS_GEN_ROOT "~/Projects/vs_gen")
-    set(VS_GEN_LIB "${VS_GEN_ROOT}/build/libvs_gen.so")
-    include(~/dlib-19.22/dlib/cmake)
-elseif(${PLATFORM} STREQUAL "HPC")
-    set(COMMON_ROOT "$HOME/Projects/Common")
-    set(DLIB_CONTRIB "~/Projects/dlib-contrib")
-    include(~/dlib-19.22/dlib/cmake)
-elseif(${PLATFORM} STREQUAL "BEAST")
-    set(COMMON_ROOT "E:/Projects/Common")
-    set(DLIB_CONTRIB "E:/Projects/dlib-contrib")
-    set(VS_GEN_ROOT "E:/Projects/vs_gen")
-    set(VS_GEN_LIB "${VS_GEN_ROOT}/build/Release/vs_gen.lib")
-    include(E:/dlib-19.22/dlib/cmake)
+if(WIN32)
+    if(${PLATFORM} STREQUAL "Laptop")
+        set(COMMON_ROOT "D:/Common")
+        set(DLIB_CONTRIB "D:/Projects/dlib-contrib")
+        set(RYML_ROOT "D:/Projects/rapidyaml")
+        set(VS_GEN_ROOT "D:/Projects/vs_gen")
+        include(D:/dlib-19.22/dlib/cmake)
+    elseif(${PLATFORM} STREQUAL "BEAST")
+        set(COMMON_ROOT "E:/Projects/Common")
+        set(DLIB_CONTRIB "E:/Projects/dlib-contrib")
+        set(RYML_ROOT "E:/Projects/rapidyaml")
+        set(VS_GEN_ROOT "E:/Projects/vs_gen")
+        include(E:/dlib-19.22/dlib/cmake)
+    else()
+        set(COMMON_ROOT "C:/Projects/Common")
+        set(DLIB_CONTRIB "C:/Projects/dlib-contrib")
+        set(RYML_ROOT "C:/Projects/rapidyaml")
+        set(VS_GEN_ROOT "C:/Projects/vs_gen")
+        include(D:/dlib-19.22/dlib/cmake)
+    endif()
+    
+    set(VS_GEN_LIB "${VS_GEN_ROOT}/vs_gen_lib/build/Release/vs_gen.lib")
+    set(RYML_LIB "${RYML_ROOT}/build/Release/ryml.lib")
+
 else()
-    set(COMMON_ROOT "D:/Common")
-    set(DLIB_CONTRIB "D:/Projects/dlib-contrib")
-    include(D:/dlib-19.22/dlib/cmake)
+    if(${PLATFORM} STREQUAL "MainGear")
+        set(_ECLIPSE_VERSION "3.8")
+        set(COMMON_ROOT "~/Projects/Common")
+        set(DLIB_CONTRIB "~/Projects/dlib-contrib")
+        set(RYML_ROOT "~/Projects/rapidyaml")
+        set(VS_GEN_ROOT "~/Projects/vs_gen")
+        include(~/dlib-19.22/dlib/cmake)
+    elseif(${PLATFORM} STREQUAL "HPC")
+        set(COMMON_ROOT "~/Projects/Common")
+        set(DLIB_CONTRIB "~/Projects/dlib-contrib")
+        set(RYML_ROOT "~/Projects/rapidyaml")
+        set(VS_GEN_ROOT "~/Projects/vs_gen")
+        include(~/dlib-19.22/dlib/cmake)
+    else()
+        set(COMMON_ROOT "~/Projects/Common")
+        set(DLIB_CONTRIB "~/Projects/dlib-contrib")
+        set(RYML_ROOT "~/Projects/rapidyaml")
+        set(VS_GEN_ROOT "~/Projects/vs_gen")
+        include(~/dlib-19.22/dlib/cmake)                
+    endif()
+    
+    set(VS_GEN_LIB "${VS_GEN_ROOT}/vs_gen_lib/build/libvs_gen.so")
+    set(RYML_LIB "${RYML_ROOT}/build/libryml.so")
+
 endif()
 
 
@@ -75,7 +97,13 @@ set(project_includes "include"
     "${PR_ROOT}/common/include"
     "${COMMON_ROOT}/include" 
     "${DLIB_CONTRIB}/include" 
-    "${VS_GEN_ROOT}/include"
+    "${VS_GEN_ROOT}/common/include"
+    "${RYML_ROOT}/include"
+    )
+
+set(project_libs ${project_libs} 
+    ${RYML_LIB}
+    ${VS_GEN_LIB}
     )
           
 message(" ")
@@ -94,13 +122,23 @@ foreach(S ${project_includes})
     message("  " ${S})
 endforeach()
 message("--------------------------------------------------------")
+
+message(" ")
+
+message("--------------------------------------------------------")
+message("Project Libraries: ")
+foreach(S ${project_libs})
+    message("  " ${S})
+endforeach()
+message("--------------------------------------------------------")
+
 message(" ")
 
 message("Cuda version: " ${CUDA_VERSION})
 
 include_directories(${project_includes})
 add_executable(${exe_name} ${SOURCES})
-target_link_libraries(${exe_name} dlib::dlib ${VS_GEN_LIB})
+target_link_libraries(${exe_name} dlib::dlib ${project_libs})
 
 if(WIN32)
     message("MSVC Version: " ${MSVC_VERSION})
