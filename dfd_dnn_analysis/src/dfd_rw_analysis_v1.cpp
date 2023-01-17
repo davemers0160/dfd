@@ -34,7 +34,7 @@
 // Net Version
 // Things must go in this order since the array size is determined
 // by the network header file
-#include "dfd_net_v14.h"
+#include "dfd_net_v16a.h"
 #include "dfd_dnn_analysis.h"
 #include "load_dfd_data.h"
 #include "eval_dfd_net_performance.h"
@@ -413,7 +413,7 @@ int main(int argc, char** argv)
                 {
                     for (uint32_t c = 0; c < map.nc(); ++c)
                     {
-                        cm(gt_tmp(r, c), map(r, c)) += 1.0;
+                        cm(gt_test[idx](r, c), map(r, c)) += 1.0;
                     }
                 }
 
