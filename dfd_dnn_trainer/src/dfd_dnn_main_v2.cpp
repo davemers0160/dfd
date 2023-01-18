@@ -134,11 +134,15 @@ int main(int argc, char** argv)
     std::string sdate, stime;
 
     std::ofstream data_log_stream;
-    std::string train_inputfile;
-    std::string test_inputfile;
+    //std::string train_inputfile;
+    //std::string test_inputfile;
     std::string train_data_directory, test_data_directory;
     std::string data_home = "";
     std::string image_num;
+
+    uint32_t num_train_images, num_test_images;
+    input_data training_data;
+    input_data testing_data;
 
     std::vector<std::vector<std::string>> training_file;
     std::vector<std::vector<std::string>> test_file;
@@ -210,7 +214,7 @@ int main(int argc, char** argv)
     }
 
     // parse through the supplied csv file
-    parse_dnn_data_file(parseFilename, version, stop_criteria, tp, train_inputfile, test_inputfile, ci, avg_color, filter_num);
+    parse_dnn_data_file(parseFilename, version, stop_criteria, tp, training_data, testing_data, ci, avg_color, filter_num);
     training_duration = stop_criteria[0];
     max_one_step_count = (uint64_t)stop_criteria[1];
 
@@ -303,52 +307,53 @@ int main(int argc, char** argv)
         // get the "DATA_HOME" environment variable <- location of the root data folder
         //data_home = path_check(get_env_variable("DATA_HOME"));
  
-        std::cout << "Training input file:  " << train_inputfile << std::endl;
-        std::cout << "Test input file:      " << test_inputfile << std::endl << std::endl;
+        std::cout << "Training input file:  " << training_data.filename << std::endl;
+        std::cout << "Test input file:      " << testing_data.filename << std::endl << std::endl;
 
         data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
-        data_log_stream << "Training input file:  " << train_inputfile << std::endl;
-        data_log_stream << "Test input file:      " << test_inputfile << std::endl << std::endl;
+        data_log_stream << "Training input file:  " << training_data.filename << std::endl;
+        data_log_stream << "Test input file:      " << testing_data.filename << std::endl << std::endl;
        
         // parse through the supplied training csv file
-/*
+        if (training_data.data_type == 0)
+        {
 #if defined(_WIN32) | defined(__WIN32__) | defined(__WIN32) | defined(_WIN64) | defined(__WIN64)
-        parse_csv_file(train_inputfile, training_file);
-        // the first line in this file is now the data directory
-        train_data_directory = data_home + training_file[0][0];
+            parse_csv_file(training_data.filename, training_file);
+            // the first line in this file is now the data directory
+            train_data_directory = data_home + training_file[0][0];
 #else
-        if (HPC == 1)
-        {
-            parse_csv_file(train_inputfile, training_file);
-            train_data_directory = data_home + training_file[0][2];
-        }
-        else
-        {
-            parse_csv_file(train_inputfile, training_file);
-            train_data_directory = data_home + training_file[0][1];
-        }
+            if (HPC == 1)
+            {
+                parse_csv_file(train_inputfile, training_file);
+                train_data_directory = data_home + training_file[0][2];
+            }
+            else
+            {
+                parse_csv_file(train_inputfile, training_file);
+                train_data_directory = data_home + training_file[0][1];
+            }
 #endif
 
-        // remove the first line which was the data directory
-        training_file.erase(training_file.begin());
+            // remove the first line which was the data directory
+            training_file.erase(training_file.begin());
 
-        //std::cout << train_inputfile << std::endl;
-        std::cout << "Training data directory:      " << train_data_directory << std::endl;
-        std::cout << "Training image sets to parse: " << training_file.size() << std::endl;
-        
-        data_log_stream << train_inputfile << std::endl;
-        data_log_stream << "Training image sets to parse: " << training_file.size() << std::endl;
+            num_train_images = training_file.size();
+            //std::cout << train_inputfile << std::endl;
+            std::cout << "Training data directory:      " << train_data_directory << std::endl;
+            std::cout << "Training image sets to parse: " << num_train_images << std::endl;
 
-        std::cout << "Loading training images..." << std::endl;
-        
-        start_time = chrono::system_clock::now();
-        load_dfd_data(training_file, train_data_directory, mod_params, tr, gt_train, tr_image_files);
-        stop_time = chrono::system_clock::now();
+            data_log_stream << "Training image sets to parse: " << num_train_images << std::endl;
 
-        elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);
-        std::cout << "Loaded " << tr.size() << " training image sets in " << elapsed_time.count() / 60 << " minutes." << std::endl << std::endl;
-*/
+            std::cout << "Loading training images..." << std::endl;
 
+            start_time = chrono::system_clock::now();
+            load_dfd_data(training_file, train_data_directory, mod_params, tr, gt_train, tr_image_files);
+            stop_time = chrono::system_clock::now();
+
+            elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);
+            std::cout << "Loaded " << tr.size() << " training image sets in " << elapsed_time.count() / 60 << " minutes." << std::endl << std::endl;
+
+        }
 //-----------------------------------------------------------------------------
         // load the test data
 
@@ -390,21 +395,23 @@ int main(int argc, char** argv)
         elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);
         std::cout << "Loaded " << te.size() << " test image sets in " << elapsed_time.count() / 60 << " minutes." << std::endl << std::endl;
 */
-        uint32_t num_test_images = 50;
 
         // get the min and max depthmap values based on the training ground truth
         // this assumes that only trainable depthmap values are in the data set
 
+
+        else if (training_data.data_type == 1)
+        {
+            //-----------------------------------------------------------------------------
+            // read in the blur params
+            init_vs_gen_from_file(training_data.filename.c_str());
+            num_train_images = 50;
+        }
+
+        //get_gt_min_max(gt_train, min_val, max_val);
         // these are statically set right now.  need to update vs_gen code to output the min/max dm values for a given scenario
         uint16_t min_val = 0;
         uint16_t max_val = 22;
-
-        //-----------------------------------------------------------------------------
-        // read in the blur params
-        init_vs_gen_from_file(train_inputfile.c_str());
-        //-----------------------------------------------------------------------------
-
-        //get_gt_min_max(gt_train, min_val, max_val);
 
         // do a check of the depthmap values to ensure that there are enough outputs in the  
         // network to cover the data input range

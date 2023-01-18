@@ -13,8 +13,7 @@
 extern const uint32_t img_depth;
 extern const uint32_t secondary;
 
-// ----------------------------------------------------------------------------------------
-
+//-----------------------------------------------------------------------------
 typedef struct training_params {
 
     training_params() = default;
@@ -27,8 +26,7 @@ typedef struct training_params {
 
 } training_params;
 
-// ----------------------------------------------------------------------------------------
-
+//-----------------------------------------------------------------------------
 typedef struct crop_info {
 
     crop_info() = default;
@@ -44,14 +42,25 @@ typedef struct crop_info {
 
 } crop_info;
 
-// ----------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+typedef struct input_data {
+    uint32_t data_type;
+    std::string filename;
 
+    input_data() = default;
+    input_data(uint32_t dt, std::string fn) : data_type(dt), filename(fn) {}
+
+} input_data;
+
+//-----------------------------------------------------------------------------
 void parse_dnn_data_file(std::string param_filename,
     std::string &version, 
     std::vector<double> &stop_criteria, 
     training_params& tp,
-    std::string &training_file,
-    std::string &test_file, 
+    input_data &training_data,
+    input_data &testing_data,
+    //std::string &training_file,
+    //std::string &test_file, 
     crop_info& ci,
     std::array<float, img_depth> &avg_color,
     std::vector<uint32_t> &filter_num
@@ -78,6 +87,8 @@ void parse_dnn_data_file(std::string param_filename,
     double duration, steps;
     uint64_t h, w;
     std::vector <float> average_colors;
+    std::string fn;
+    uint32_t dt;
 
     try {
         std::ifstream tmp_stream(param_filename);
@@ -108,8 +119,15 @@ void parse_dnn_data_file(std::string param_filename,
         training_parameters["steps_wo_progress"] >> tp.steps_wo_progess;
 
         // Training/Testing input files
-        config["train_file"] >> training_file;
-        config["test_file"] >> test_file;
+        ryml::NodeRef tng_data = config["training_data"];
+        tng_data["data_type"] >> dt;
+        tng_data["train_file"] >> fn;
+        training_data = input_data(dt, fn);
+
+        ryml::NodeRef tst_data = config["test_data"];
+        tst_data["data_type"] >> dt;
+        tst_data["test_file"] >> fn;
+        testing_data = input_data(dt, fn);
 
         // Crop Info: Number of crops, train_crop_size (h,w), eval_crop_size (h,w), virtual scene patch size (h,w), noise std
         ryml::NodeRef crop_info_node = config["crop_info"];
