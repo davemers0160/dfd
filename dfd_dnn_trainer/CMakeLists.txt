@@ -55,7 +55,7 @@ if(WIN32)
         include(D:/dlib-19.22/dlib/cmake)
     endif()
     
-    set(VS_GEN_LIB "${VS_GEN_ROOT}/build/Release/vs_gen.lib")
+    set(VS_GEN_LIB "${VS_GEN_ROOT}/vs_gen_lib/build/Release/vs_gen.lib")
     set(RYML_LIB "${RYML_ROOT}/build/Release/ryml.lib")
 
 else()
@@ -80,7 +80,7 @@ else()
         include(~/dlib-19.22/dlib/cmake)                
     endif()
     
-    set(VS_GEN_LIB "${VS_GEN_ROOT}/build/libvs_gen.so")
+    set(VS_GEN_LIB "${VS_GEN_ROOT}/vs_gen_lib/build/libvs_gen.so")
     set(RYML_LIB "${RYML_ROOT}/build/libryml.so")
 
 endif()
@@ -96,7 +96,7 @@ set(project_includes "include"
     "${PR_ROOT}/common/include"
     "${COMMON_ROOT}/include" 
     "${DLIB_CONTRIB}/include" 
-    "${VS_GEN_ROOT}/include"
+    "${VS_GEN_ROOT}/common/include"
     "${RYML_ROOT}/include"
     )
 
