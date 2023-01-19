@@ -510,8 +510,8 @@ int main(int argc, char** argv)
             var_dm_accum += results(0, 5);
             ++count;
 
-            //std::cout << "Press Enter to continue..." << std::endl;
-            //std::cin.ignore();
+            std::cout << "Press Enter to continue..." << std::endl;
+            std::cin.ignore();
             //std::string key;
             //char key;
             //std::getline(cin,key);
