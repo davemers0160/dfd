@@ -91,14 +91,15 @@ int main(int argc, char** argv)
 
     //std::ofstream trainLogStream;
     //std::string train_inputfile;
-    std::string test_inputfile;
+    //std::string test_inputfile;
     std::string net_name;
     std::string parse_filename;
     std::string results_name;
     std::string data_directory;
     //std::string data_home;
     std::string image_num;
-    uint32_t data_type;
+    
+    input_data testing_data;
     uint32_t num_test_images;
 
     std::vector<std::vector<std::string>> test_file;
@@ -178,13 +179,13 @@ int main(int argc, char** argv)
         parse_filename = argv[1];
         
         // parse through the supplied input file
-        parse_dfd_analysis_file(parse_filename, test_inputfile, data_type, net_name, results_name, output_save_location, crop_size);
+        parse_dfd_analysis_file(parse_filename, testing_data, net_name, results_name, output_save_location, crop_size);
         
-        if (test_inputfile == "" | net_name == "")
+        if (testing_data.filename == "" | net_name == "")
         {
             std::cout << "------------------------------------------------------------------" << std::endl;
             std::cout << "Error parsing input file.  No test input data file or network file provided." << std::endl;
-            std::cout << "test_inputfile: " << test_inputfile << std::endl;
+            std::cout << "test_inputfile: " << testing_data.filename << std::endl;
             std::cout << "net_name: " << net_name << std::endl;
             std::cout << "results_name: " << results_name << std::endl;
             std::cout << "Press Enter to continue..." << std::endl;
@@ -201,16 +202,10 @@ int main(int argc, char** argv)
         mkdir(output_save_location);
 
         //-----------------------------------------------------------------------------
-        if (data_type == 0)
-        {
-            // read in the blur params
-            num_test_images = 100;
-            init_vs_gen_from_file(test_inputfile.c_str());
-        }
-        else if (data_type == 1)
+        if (testing_data.data_type == 0)
         {
 #if defined(_WIN32) | defined(__WIN32__) | defined(__WIN32) | defined(_WIN64) | defined(__WIN64)
-            parse_csv_file(test_inputfile, test_file);
+            parse_csv_file(testing_data.filename, test_file);
             data_directory = test_file[0][0];
 #else
             if (HPC == 1)
@@ -233,6 +228,13 @@ int main(int argc, char** argv)
             std::cout << "Test image sets to parse: " << num_test_images << std::endl;
             load_dfd_data(test_file, data_directory, mod_params, te, gt_test, image_files);
         }
+        else if (testing_data.data_type == 1)
+        {
+            // read in the blur params
+            num_test_images = 100;
+            init_vs_gen_from_file(testing_data.filename.c_str());
+        }
+
         else
         {
             num_test_images = 0;
@@ -247,7 +249,7 @@ int main(int argc, char** argv)
         dm_results_stream.open((output_save_location + results_name + "_depth_map_result_images.txt"), ios::out);
         cm_results_stream.open((output_save_location + results_name + "_confusion_matrix_results.txt"), ios::out);
 
-        std::cout << "Data Input File:        " << test_inputfile << std::endl << std::endl;
+        std::cout << "Data Input File:        " << testing_data.filename << std::endl << std::endl;
 
         // Add the date and time to the start of the log file
         data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
@@ -258,7 +260,7 @@ int main(int argc, char** argv)
         data_log_stream << "program_root:         " << program_root << std::endl;
         data_log_stream << "output_save_location: " << output_save_location << std::endl;
         data_log_stream << "data_directory:       " << data_directory << std::endl;
-        data_log_stream << "data input file:      " << test_inputfile << std::endl << std::endl;
+        data_log_stream << "data input file:      " << testing_data.filename << std::endl << std::endl;
 
         //data_log_stream << "#------------------------------------------------------------------------------" << std::endl;
         //data_log_stream << "Test image sets to parse: " << num_test_images << std::endl << std::endl;
@@ -332,9 +334,15 @@ int main(int argc, char** argv)
         std::vector<uint8_t> fp2_ptr(crop_size.first * crop_size.second * num_channels);
         std::vector<uint8_t> dm_ptr(crop_size.first * crop_size.second);
 
-        switch (data_type)
+        switch (testing_data.data_type)
         {
         case 0:
+
+            // run through the network once.  This primes the GPU and stabilizes the timing -- don't need the results.
+            eval_net_performance(dfd_net, te[0], gt_test[0], map, crop_size);
+            break;
+
+        case 1:
             // generate an image 
             generate_vs_scene(crop_size.second, crop_size.first, fp1_ptr.data(), fp2_ptr.data(), dm_ptr.data());
 
@@ -344,13 +352,6 @@ int main(int argc, char** argv)
             // run through the network once.  This primes the GPU and stabilizes the timing -- don't need the results.
             eval_net_performance(dfd_net, tmp, gt_tmp, map, crop_size);
             break;
-
-        case 1:
-
-            // run through the network once.  This primes the GPU and stabilizes the timing -- don't need the results.
-            eval_net_performance(dfd_net, te[0], gt_test[0], map, crop_size);
-            break;
-
         }
 
         dlib::rand rnd(time(NULL));
@@ -364,9 +365,33 @@ int main(int argc, char** argv)
 
         for (idx = 0; idx < num_test_images; ++idx)
         {
-            switch (data_type)
+            switch (testing_data.data_type)
             {
             case 0:
+                // add noise
+                apply_poisson_noise(te[idx], 2.0, rnd, 0.0, 255.0);
+
+                // time and analyze the results
+                start_time = chrono::system_clock::now();
+                results = eval_net_performance(dfd_net, te[idx], gt_test[idx], map, crop_size);
+                stop_time = chrono::system_clock::now();
+
+                // create a depthmap version in RGB 
+                dm_img = mat_to_rgbjetmat(dlib::matrix_cast<float>(map), 0.0, (float)gt_max);
+                gt_img = mat_to_rgbjetmat(dlib::matrix_cast<float>(gt_test[idx]), 0.0, (float)gt_max);
+
+                // fill in the confusion matrix for the range of depthmap values
+                for (uint32_t r = 0; r < map.nr(); ++r)
+                {
+                    for (uint32_t c = 0; c < map.nc(); ++c)
+                    {
+                        cm(gt_test[idx](r, c), map(r, c)) += 1.0;
+                    }
+                }
+
+                break;
+
+            case 1:
                 // generate an image 
                 generate_vs_scene(crop_size.second, crop_size.first, fp1_ptr.data(), fp2_ptr.data(), dm_ptr.data());
 
@@ -395,29 +420,6 @@ int main(int argc, char** argv)
 
                 break;
 
-            case 1:
-                // add noise
-                apply_poisson_noise(te[idx], 2.0, rnd, 0.0, 255.0);
-
-                // time and analyze the results
-                start_time = chrono::system_clock::now();
-                results = eval_net_performance(dfd_net, te[idx], gt_test[idx], map, crop_size);
-                stop_time = chrono::system_clock::now();
-
-                // create a depthmap version in RGB 
-                dm_img = mat_to_rgbjetmat(dlib::matrix_cast<float>(map), 0.0, (float)gt_max);
-                gt_img = mat_to_rgbjetmat(dlib::matrix_cast<float>(gt_test[idx]), 0.0, (float)gt_max);
-
-                // fill in the confusion matrix for the range of depthmap values
-                for (uint32_t r = 0; r < map.nr(); ++r)
-                {
-                    for (uint32_t c = 0; c < map.nc(); ++c)
-                    {
-                        cm(gt_test[idx](r, c), map(r, c)) += 1.0;
-                    }
-                }
-
-                break;
             }
 
             // change lighting intensity
@@ -432,16 +434,17 @@ int main(int argc, char** argv)
 
 #ifndef DLIB_NO_GUI_SUPPORT
 
-            switch (data_type)
+            switch (testing_data.data_type)
             {
             case 0:
-                merge_channels(tmp, rgb_img1, 0);
-                merge_channels(tmp, rgb_img2, num_channels);
-                break;
-            case 1:
                 merge_channels(te[idx], rgb_img1, 0);
                 merge_channels(te[idx], rgb_img2, num_channels);
                 break;
+            case 1:
+                merge_channels(tmp, rgb_img1, 0);
+                merge_channels(tmp, rgb_img2, num_channels);
+                break;
+
             }
 
             img_montage.set_size(rgb_img1.nr(), rgb_img1.nc() * 2);

@@ -13,11 +13,21 @@
 extern const uint32_t img_depth;
 extern const uint32_t secondary;
 
-// ----------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+typedef struct input_data {
+    uint32_t data_type;
+    std::string filename;
 
+    input_data() = default;
+    input_data(uint32_t dt, std::string fn) : data_type(dt), filename(fn) {}
+
+} input_data;
+
+//-----------------------------------------------------------------------------
 void parse_dfd_analysis_file(std::string param_filename,
-    std::string &data_file, 
-    uint32_t &data_type,
+    input_data& testing_data,
+    //std::string &data_file,
+    //uint32_t &data_type,
     std::string &net_file,
     std::string &results_name, 
     std::string &save_location, 
@@ -26,6 +36,8 @@ void parse_dfd_analysis_file(std::string param_filename,
 {
     uint32_t idx;
     uint64_t h, w;
+    std::string fn;
+    uint32_t dt;
 
     try {
         std::ifstream tmp_stream(param_filename);
@@ -42,10 +54,10 @@ void parse_dfd_analysis_file(std::string param_filename,
         config["results_name"] >> results_name;
 
         // input file
-        config["data_file"] >> data_file;
-
-        // data_type
-        config["data_type"] >> data_type;
+        ryml::NodeRef tst_data = config["test_data"];
+        tst_data["data_type"] >> dt;
+        tst_data["test_file"] >> fn;
+        testing_data = input_data(dt, fn);
 
         // network weight file
         config["net_file"] >> net_file;
