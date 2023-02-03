@@ -327,12 +327,12 @@ int main(int argc, char** argv)
 #else
             if (HPC == 1)
             {
-                parse_csv_file(train_inputfile, training_file);
+                parse_csv_file(training_data.filename, training_file);
                 train_data_directory = data_home + training_file[0][2];
             }
             else
             {
-                parse_csv_file(train_inputfile, training_file);
+                parse_csv_file(training_data.filename, training_file);
                 train_data_directory = data_home + training_file[0][1];
             }
 #endif
@@ -675,12 +675,12 @@ int main(int argc, char** argv)
 #else
             if (HPC == 1)
             {
-                parse_csv_file(test_inputfile, test_file);
+                parse_csv_file(testing_data.filename, test_file);
                 test_data_directory = data_home + test_file[0][2];
             }
             else
             {
-                parse_csv_file(test_inputfile, test_file);
+                parse_csv_file(testing_data.filename, test_file);
                 test_data_directory = data_home + test_file[0][1];
             }
 #endif
