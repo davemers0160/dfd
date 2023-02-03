@@ -178,6 +178,9 @@ int main(int argc, char** argv)
     std::array<float, img_depth> avg_color;
     uint16_t gt_max = 0;
 
+    uint16_t min_val = 0;
+    uint16_t max_val = 22;
+
     // these are the parameters to load in an image to make sure that it is the correct size
     // for the network.  The first number makes sure that the image is a modulus of the number
     // and the second number is an offest from the modulus.  This is used based on the network
@@ -353,63 +356,22 @@ int main(int argc, char** argv)
             elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);
             std::cout << "Loaded " << tr.size() << " training image sets in " << elapsed_time.count() / 60 << " minutes." << std::endl << std::endl;
 
+            // get the min and max depthmap values based on the training ground truth
+            // this assumes that only trainable depthmap values are in the data set 
+            get_gt_min_max(gt_train, min_val, max_val);
+
         }
-//-----------------------------------------------------------------------------
-        // load the test data
-
-/*
-#if defined(_WIN32) | defined(__WIN32__) | defined(__WIN32) | defined(_WIN64) | defined(__WIN64)
-        parse_csv_file(test_inputfile, test_file);
-        test_data_directory = data_home + test_file[0][0];
-#else
-        if (HPC == 1)
-        {
-            parse_csv_file(test_inputfile, test_file);
-            test_data_directory = data_home + test_file[0][2];
-        }
-        else
-        {
-            parse_csv_file(test_inputfile, test_file);
-            test_data_directory = data_home + test_file[0][1];
-        }
-#endif
-
-        // remove the first line which was the data directory
-        test_file.erase(test_file.begin());
-
-        //std::cout << test_inputfile << std::endl;
-        std::cout << "Test data directory:      " << test_data_directory << std::endl;
-        std::cout << "Test image sets to parse: " << test_file.size() << std::endl;
-
-        data_log_stream << "------------------------------------------------------------------" << std::endl;
-        data_log_stream << test_inputfile << std::endl;
-        data_log_stream << "Test image sets to parse: " << test_file.size() << std::endl;
-        data_log_stream << "------------------------------------------------------------------" << std::endl;
-
-        std::cout << "Loading test images..." << std::endl;
-
-        start_time = chrono::system_clock::now();
-        load_dfd_data(test_file, test_data_directory, mod_params, te, gt_test, te_image_files);
-        stop_time = chrono::system_clock::now();
-
-        elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);
-        std::cout << "Loaded " << te.size() << " test image sets in " << elapsed_time.count() / 60 << " minutes." << std::endl << std::endl;
-*/
-
         else if (training_data.data_type == 1)
         {
             //-----------------------------------------------------------------------------
             // read in the blur params
             init_vs_gen_from_file(training_data.filename.c_str());
             num_train_images = 50;
-        }
 
-        // get the min and max depthmap values based on the training ground truth
-        // this assumes that only trainable depthmap values are in the data set 
-        //get_gt_min_max(gt_train, min_val, max_val);
-        // these are statically set right now.  need to update vs_gen code to output the min/max dm values for a given scenario
-        uint16_t min_val = 0;
-        uint16_t max_val = 22;
+            // these are statically set right now.  need to update vs_gen code to output the min/max dm values for a given scenario
+            min_val = 0;
+            max_val = 22;
+        }
 
         // do a check of the depthmap values to ensure that there are enough outputs in the  
         // network to cover the data input range
@@ -537,18 +499,27 @@ int main(int argc, char** argv)
                 tr_crop.clear();
                 gt_crop.clear();
 
-                for (idx = 0; idx < ci.crop_num; ++idx)
+                if (training_data.data_type == 0)
                 {
-                    // generate an image 
-                    generate_vs_scene(ci.vs_size.second, ci.vs_size.first, fp1_ptr.data(), fp2_ptr.data(), dm_ptr.data());
 
-                    // convert the vector pointers to dlib::matrix
-                    vect2matrix(ci.vs_size.first, ci.vs_size.second, fp1_ptr, fp2_ptr, dm_ptr, tmp, gt_tmp);
-                    
-                    cropper.single(tmp, gt_tmp, tr_crop, gt_crop);
+                    cropper(ci.crop_num, tr, gt_train, tr_crop, gt_crop);
+
                 }
+                else
+                {
 
-                
+                    for (idx = 0; idx < ci.crop_num; ++idx)
+                    {
+                        // generate an image 
+                        generate_vs_scene(ci.vs_size.second, ci.vs_size.first, fp1_ptr.data(), fp2_ptr.data(), dm_ptr.data());
+
+                        // convert the vector pointers to dlib::matrix
+                        vect2matrix(ci.vs_size.first, ci.vs_size.second, fp1_ptr, fp2_ptr, dm_ptr, tmp, gt_tmp);
+
+                        cropper.single(tmp, gt_tmp, tr_crop, gt_crop);
+                    }
+
+                }
 
                 // @mem((gt_crop[0].data).data,UINT16,1,gt_crop[0].nc(), gt_crop[0].nr(),gt_crop[0].nc()*2)
                 // @mem((tr_crop[0][0].data).data,UINT16,1,tr_crop[0][0].nc(), tr_crop[0][0].nr(),tr_crop[0][0].nc()*2)
